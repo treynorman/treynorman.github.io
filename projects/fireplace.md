@@ -5,9 +5,9 @@
 
 A cozy, crackling fireplace in your web browser. Use it to read, study, relax, or lock up your computer to avoid distractions.
 
-*Demo: Click the time to make it crackle, Try it in full-screen mode!*
-
 [Demo](https://trey.zip/projects/fireplace/fireplace.html)
+
+*(Instructions: Click the current time to make it crackle, Try it in full-screen mode!)*
 
 ## Gallery
 

@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>Merging All Chat Apps with a Selfhosted Matrix Server &amp; Bridges | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>Merging All Chat Apps with a Selfhosted Matrix Server &amp; Bridges</h1>
+
+<h4>May 4, 2025</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p><strong>Includes:  <a href="https://matrix.org/">Matrix</a> <a href="https://github.com/element-hq/synapse">Synapse</a> (server), <a href="https://www.postgresql.org/">PostgreSQL</a> (database), <a href="https://matrix.org/ecosystem/bridges/">Matrix chat briges</a>, <a href="https://app.element.io/">Element</a> (web / mobile client), <a href="https://ntfy.sh/">ntfy</a> (notification service)</strong> <br />
+<strong>Unifies:  Facebook Messenger, Instagram DMs, iMessage, Signal, Slack, SMS, WhatsApp</strong></p>
+
+<p>This is a guide for setting up a private, encrypted chat service to unify all chat apps into a single portal.</p>
+
+<p>The solution is free and open source. It includes customizable bridges to external chat services and a postgres database capable handling heavy workloads. It's comprised of more than 10 Docker containers. The end result can be configured to federate across the global Matrix network and handle dozens of users.</p>
+
+<p>That is to say, it's undoubtedly overkill to set up something this complex for a single user. But it's the only private solution to the problem.</p>
+
+<hr />
+
+<h2>Background</h2>
+
+<p>My goal with this project was to merge my chats from the Zuckerverse (Facebook, Instagram, WhatsApp), iMessage (without an iPhone), Signal, Slack, and SMS into one place without giving keys to all of my private conversations to some randos at public company. In doing so, I've built a private version <a href="https://www.beeper.com/">Beeper</a> that's easy to update and maintain. And you can, too!</p>
+
+<p>Matrix isn't easy to install with Docker compose. The ecosystem claims to support it, but Docker is not the standard way to install Matrix. Getting up and running with a clean, containerized solution requires wading through sparse documentation, reading a blog post or two, then piecing everything together. Bridge configuration to connect to other chat apps is even more time consuming. So, this guide is as much for me to use as it is for you—after I've forgotten everything, something breaks, and I don't know why.</p>
+
+<hr />
+
+<h2>Subdomain setup</h2>
+
+<p>Assuming you already own a domain like <strong>example.com</strong>, pick a couple of subdomains for your server and web client. For example, <strong>server.example.com</strong> and <strong>app.example.com</strong>.</p>
+
+<p>Configure those on your DNS provider, so they point to your Matrix server. I like <a href="https://www.cloudflare.com/">Clouflare</a>, because it's free and comes with DDoS protection.</p>
+
+<p>Cloudflare DNS config documentation: <br />
+https://developers.cloudflare.com/dns/manage-dns-records/how-to/create-subdomain</p>
+
+<hr />
+
+<h2>Docker compose (Synapse, Element, PostgreSQL)</h2>
+
+<p>Below is an example <a href="https://docs.docker.com/compose/">Docker compose</a> file based on my config.</p>
+
+<pre><code>services:
+  matrix-synapse:
+    image: matrixdotorg/synapse:latest
+    container_name: matrix-synapse
+    restart: unless-stopped
+    environment:
+      TZ: America/Chicago
+    user: [user-id]:[group-id]
+    ports:
+      - 8008:8008
+      # - 8448:8448  # Federation port
+    volumes:
+      - /your-data-dir/synapse:/data
+      - /your-media-dir:/media  # Optional 
+    depends_on:
+      - matrix-db
+  matrix-db:
+    image: postgres
+    container_name: matrix-db
+    environment:
+      POSTGRES_USER: "synapse"
+      POSTGRES_PASSWORD: "your-super-sercret-password"
+      POSTGRES_DB: "synapse"
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - 8009:5432
+    volumes:
+      - /your-data-dir/db:/var/lib/postgresql/data
+  matrix-element:
+    image: vectorim/element-web:latest
+    container_name: matrix-element
+    restart: unless-stopped
+    ports:
+      - 8010:80
+    volumes:
+      - /your-data-dir/element/config.json:/app/config.json
+</code></pre>
+
+<p><code>[user-id]:[group-id]</code> should match your Docker user for Synapse.</p>
+
+<p>Under <code>volumes</code>, define directories for the all of the data and config files. Make sure you've created those directories, e.g.</p>
+
+<pre><code>mkdir -p /your-data-dir/synapse
+mkdir -p /your-data-dir/element
+mkdir -p /your-data-dir/db
+</code></pre>
+
+<p>You might want to store large media files on a big hard drive and have the rest of the data served from a faster, more expensive hard drive. I do. To achieve this, change <code>/your-media-dir</code> to the location of your choice. To skip it, remove this line.</p>
+
+<p><code>POSTGRES_PASSWORD: "your-super-sercret-password"</code> should be an actual super secret password for the postgres database.</p>
+
+<p>The ports I've used are:</p>
+
+<ul>
+<li>8008 - <a href="https://github.com/element-hq/synapse">Synapse, the Matrix server</a> (default)</li>
+<li>8009 - Synapse postgres database</li>
+<li>8010 - <a href="https://github.com/element-hq/element-web">Element, the Matrix web client</a></li>
+<li>8448 - Synapse federation port*</li>
+</ul>
+
+<p>Note: We won't be setting up federation in this tutorial.</p>
+
+<hr />
+
+<h2>Configure the Synapse server</h2>
+
+<p>Run the command below once to generate the base config files. Change <code>[user-id]:[group-id]</code>, <code>/your-data-dir/synapse</code>, and <code>server.example.com</code> to match your setup:</p>
+
+<pre><code>docker run -it --user [user-id]:[group-id] c --rm \
+    -v /your-data-dir/synapse:/data \
+    -e SYNAPSE_SERVER_NAME=server.example.com \
+    -e SYNAPSE_REPORT_STATS=yes \
+    matrixdotorg/synapse:latest generate
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir/synapse</code>. Edit <code>homeserver.yaml</code> and replace the SQLite database section with the block below. Be sure to include <code>your-super-sercret-password</code> for the postgres database.</p>
+
+<pre><code>database:
+  name: psycopg2
+  args:
+    user: synapse
+    password: your-super-sercret-password
+    dbname: synapse
+    host: matrix-db
+    cp_min: 5
+    cp_max: 10
+    # seconds of inactivity after which TCP should send a keepalive message to the server
+    keepalives_idle: 10
+    # the number of seconds after which a TCP keepalive message that is not
+    # acknowledged by the server should be retransmitted
+    keepalives_interval: 10
+    # the number of TCP keepalives that can be lost before the client's connection
+    # to the server is considered dead
+    keepalives_count: 3
+</code></pre>
+
+<p>Why not use SQLite and skip the postgres container?</p>
+
+<p>SQLite won't perform well with multiple users, and Matrix won't allow you to federate without postgres. The rest of this guide also assumes that a postgres instance is available to create databases for each chat bridge.</p>
+
+<p>Finally, if you chose to store media files on a separate drive, set <code>media_store_path</code> to <code>/media</code> (the path mapped in Docker compose):</p>
+
+<pre><code>media_store_path: /media
+</code></pre>
+
+<hr />
+
+<h2>Configure the Element web client</h2>
+
+<p>For element to start, it needs to know where to find your Matrix server.</p>
+
+<p>Navigate to <code>/your-data-dir/element</code> and download the default Element config file from here: https://app.element.io/config.json</p>
+
+<pre><code>wget https://app.element.io/config.json
+</code></pre>
+
+<p>Edit <code>config.json</code> and tell it to connect to your Matrix server by default:</p>
+
+<pre><code>{
+    "default_server_name": "matrix.example.com",
+    "default_server_config": {
+        "m.homeserver": {
+            "base_url": "https://matrix.example.com"
+        },
+        "m.identity_server": {
+            "base_url": "https://vector.im"
+        }
+    }
+    ...
+</code></pre>
+
+<p>Disable the account creation button (unless you like that sort of thing) by adding this line to <code>setting_defaults</code>:</p>
+
+<pre><code>    ...
+    "setting_defaults": {
+        "UIFeature.registration": false
+    }
+    ...
+</code></pre>
+
+<p>Full config documentation: https://web-docs.element.dev/Element%20Web/config.html</p>
+
+<hr />
+
+<h2>Create an admin user for Synapse</h2>
+
+<p>First, boot up all of the contianers:</p>
+
+<pre><code>docker compose up -d
+</code></pre>
+
+<p>After Synapse is running, create an admin user via <code>register_new_matrix_user</code>. Don't just copy/paste the command below. Change <code>&lt;username&gt;</code> and <code>&lt;password&gt;</code> to your suit your needs.</p>
+
+<pre><code>docker exec -it matrix-synapse register_new_matrix_user http://localhost:8008 -u &lt;username&gt; -p &lt;password&gt; -a -c /data/homeserver.yaml
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir/synapse</code>. Edit <code>homeserver.yaml</code> and add the lines below to disable registration until you're ready to add more users. Also, encrypt chats by default (why isn't this the default setting?) and disallow the creation of public rooms to defend against port scanning spammers if you federate.</p>
+
+<pre><code>enable_registration: false
+registration_requires_token: true
+allow_public_rooms_without_auth: false
+allow_public_rooms_over_federation: false
+encryption_enabled_by_default_for_room_type: all
+</code></pre>
+
+<p>If you'd like to enable new user registration in the future on an invite-only basis, <a href="https://element-hq.github.io/synapse/latest/usage/administration/admin_api/registration_tokens.html">token registration</a> is possible and included in this setup. The app <a href="https://github.com/Awesome-Technologies/synapse-admin">synapse-admin</a> can help with that.</p>
+
+<p>Restart Synapse for the config changes to take effect:</p>
+
+<pre><code>docker restart matrix-synapse
+</code></pre>
+
+<hr />
+
+<h2>Open it up to the big, scary internet</h2>
+
+<p><a href="https://element-hq.github.io/synapse/latest/reverse_proxy.html">Configure your nginx reverse proxy to open Synapse and Element up to the web.</a></p>
+
+<p>There are a number of ways to do this and tools to assist. You might choose to use vanilla nginx + Certbot, Caddy, or SWAG. Detailing any one solution is beyond the scope of this write-up.</p>
+
+<p>Make sure port 443 is open on your firewall and forwarded to your server from your router. Maybe open port 80 as well if you're not strict about SLL encryption. Port 8448 is used for federation, which we're ignoring for now.</p>
+
+<p>Once complete, your subdomains (e.g. <strong>server.example.com</strong> and <strong>app.example.com</strong>) should resolve to Synapse and Element respectively.</p>
+
+<hr />
+
+<h2>Notifications sold separately (ntfy)</h2>
+
+<p>Notifications will not be sent to your smartphone from your new chat service without setting up another service inside another Docker container. Yep.</p>
+
+<p>To configure Matrix Synapse to send push notifications, navigate to <code>/your-data-dir/synapse</code> and edit <code>homeserver.yaml</code>. Add the lines shown below.</p>
+
+<pre><code>push:
+  gateway:
+    url: "https://ntfy.example.com/_matrix/push/v1/notify"
+  enabled: true
+  include_content: true
+  group_unread_count_by_room: false
+
+ip_range_whitelist:
+ - '127.0.0.1'
+ - '192.168.0.0/16'
+ - '10.0.0.0/8'
+</code></pre>
+
+<p>Next, create a directory for ntfy to store its data. Ntfy is useful for other things, too, so it doesn't need to be grouped together with the Matrix data unless you want it to be.</p>
+
+<pre><code>mkdir /your-data-dr/ntfy
+</code></pre>
+
+<p>Docker compose for the <a href="https://ntfy.sh/">ntfy</a> service:</p>
+
+<pre><code>services:
+  ntfy:
+    image: binwiederhier/ntfy
+    restart: unless-stopped
+    container_name: ntfy
+    environment:
+      NTFY_BASE_URL: https://ntfy.example.com
+      NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+      NTFY_CACHE_DURATION: 36h
+      NTFY_ATTACHMENT_CACHE_DIR: /var/lib/ntfy/attachments
+      NTFY_AUTH_FILE: /var/lib/ntfy/auth.db
+      NTFY_AUTH_DEFAULT_ACCESS: deny-all
+      NTFY_WEB_ROOT: disable
+      NTFY_BEHIND_PROXY: true
+      NTFY_ENABLE_LOGIN: true
+      NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
+    volumes:
+      - /your-data-dr/ntfy:/var/lib/ntfy
+    ports:
+      - 8093:80
+    command: serve
+</code></pre>
+
+<p>Replace <code>http://ntfy.example.com</code> with a subdomain of your choice. Replace <code>/your-data-dr/ntfy</code> with the location you chose for your ntfy data. The rest of the settings/environment variables can remain unchanged, but feel free to customize. <a href="https://docs.ntfy.sh/config/">Ntfy configuration documentation</a>.</p>
+
+<p><strong>Users must be added manually on a per-user basis and install the ntfy app to receive push notifications.</strong></p>
+
+<p>To add a user, enter the ntfy Docker container via the terminal. Use a strong password, because ntfy will be open to the outside internet.</p>
+
+<pre><code>docker exec -it ntfy sh
+ntfy user add &lt;username&gt;
+</code></pre>
+
+<p>Allow the user to only subscribe  to UnifiedPush topics (read permissions) and ensure that Matrix apps can push notifications via UnifiedPush (write permissions):</p>
+
+<pre><code>ntfy access &lt;username&gt; 'up*' read-only
+ntfy access '*' 'up*' write-only
+</code></pre>
+
+<p>For a user to receive notifications, they must do the following:</p>
+
+<ul>
+<li>Download the <strong>ntfy app</strong> for <a href="https://f-droid.org/en/packages/io.heckel.ntfy/">Android</a> or <a href="https://apps.apple.com/us/app/ntfy/id1625396347">iPhone</a></li>
+<li>Go to <strong>Settings &gt; General &gt; Default server</strong> and point it to your server, e.g. https://ntfy.example.com</li>
+<li>Go to <strong>Settings &gt; General &gt; Manage users &gt; Add new user</strong> and enter your server as the Service URL, their ntfy username, and their ntfy password</li>
+<li>(Android only) Disable Android's braindead battery optimizations, so it doesn't kill the app when it's running in the background</li>
+</ul>
+
+<p>Now, a user running a Matrix app like <strong><a href="https://element.io/app">Element X</a></strong> can receive notifications via ntfy. Nifty!</p>
+
+<hr />
+
+<h2>Matrix general bridge config (double puppeting)</h2>
+
+<p>Once you're bored of chatting with yourself, you'll want to connect some chat services. But don't do it until you've configured double puppeting.</p>
+
+<p>Double puppeting ensures seamless bridging to external chat apps. With double puppeting, chats from external apps will look like they came from your contacts. A bunch of other bridge functions work better, too. </p>
+
+<p>Don't skip this. We'll set up <em>automatic</em> double puppeting, so we and our users can be lazy moving forward.</p>
+
+<p>Navigate to <code>/your-data-dir/synapse</code> and create a file called <code>doublepuppet.yaml</code>. Add the lines shown below.</p>
+
+<pre><code>id: doublepuppet
+url:      # intentionally left blank
+as_token: random_string
+hs_token: random_string
+sender_localpart: random_string
+rate_limited: false
+namespaces:
+  users:
+  # Replace server\.example\.com with your server domain with \ before any .
+  - regex: '@.*:server\.example\.com'
+    exclusive: false
+</code></pre>
+
+<p>Be sure to change <code>server\.example\.com</code> to your Matrix server domain, and don't forget the escape characters, e.g. <code>\</code>, or you'll confuse regex.</p>
+
+<p>You can use the command below to generate <code>random_strings</code> as needed:</p>
+
+<pre><code>cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1
+</code></pre>
+
+<p>Finally, edit <code>homeserver.yaml</code> and add the lines below to register <code>doublepuppet.yaml</code> as an app service on your Matrix Synapse server:</p>
+
+<pre><code>app_service_config_files:
+- /data/doublepuppet.yaml
+</code></pre>
+
+<p>Restart Synapse for the config changes to take effect:</p>
+
+<pre><code>docker restart matrix-synapse
+</code></pre>
+
+<p>Full documentation: https://docs.mau.fi/bridges/general/double-puppeting.html</p>
+
+<hr />
+
+<h2>Matrix / Facebook Messenger &amp; Instagram DM bridge config</h2>
+
+<p>On your Matrix server, create a data directory for the bridge service inside <code>/your-data-dir</code>:</p>
+
+<pre><code>mkdir /your-data-dir/mautrix-meta
+</code></pre>
+
+<p>Create a database for the bridge on your <code>matrix-db</code> instance:</p>
+
+<pre><code>docker exec -e PGPASSWORD=&lt;your-postgres-password&gt; -it matrix-db \
+  psql -U synapse -d postgres \
+  -c "CREATE DATABASE \"mautrix-meta\";"
+</code></pre>
+
+<p>Docker compose for the <a href="https://github.com/mautrix/meta">mautrix-meta</a> bridge:</p>
+
+<pre><code>services:
+  mautrix-meta:
+    image: dock.mau.dev/mautrix/meta:latest
+    container_name: mautrix-meta
+    restart: unless-stopped
+    volumes:
+    - /your-data-dir/mautrix-meta:/data
+</code></pre>
+
+<p>Start and stop the bridge to create a config file:</p>
+
+<pre><code>docker compose up -d
+docker stop mautrix-meta
+</code></pre>
+
+<p>Edit the config file <code>/your-data-dir/mautrix-meta/config.yaml</code> according to the official documentation. There's a lot to configure.</p>
+
+<p>Some required and/or useful options:</p>
+
+<ul>
+<li>network &gt; displayname_template &gt; <code>'{{or .DisplayName .Username "Unknown user"}} (FB/IG)'</code> (append FB/IG after name)</li>
+<li>network &gt; ig_e2ee &gt; <code>true</code> (you want encryption if you've come this far)</li>
+<li>network &gt; cache<em>connection</em>state &gt; <code>true</code> (better performance)</li>
+<li>network &gt; disable<em>xma</em>always &gt; <code>true</code> (don't fetch reels, stories, etc)</li>
+<li>bridge &gt; bridge<em>matrix</em>leave &gt; <code>true</code> (sync leaving groups)</li>
+<li>bridge &gt; permissions &gt; @admin to your admin username, example.com to your matrix domain</li>
+<li>database &gt; uri &gt; <code>postgres://synapse:[your-super-sercret-password]@[your-server-IP]:8009/mautrix-meta?sslmode=disable</code></li>
+<li>homeserver &gt; address &gt; <code>http://[your-server-IP]:8008</code></li>
+<li>homeserver &gt; domain &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; address &gt; <code>http://mautrix-meta:29319</code></li>
+<li>appservice &gt; public_address &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; hostname &gt; <code>0.0.0.0</code></li>
+<li>appservice &gt; bot &gt; username, displayname, avatar &gt; have some fun</li>
+<li>backfill &gt; enabled &gt; <code>true</code> (fetch old / missed messages)</li>
+<li>double<em>puppet &gt; secrets &gt; <code>[your-matrix-domain]: as_token:[your-token]</code> (as</em>token from <code>/your-data-dir/synapse/doublepuppet.yaml</code>)</li>
+<li>encryption &gt; allow &gt; <code>true</code> (why isn't this the default?)</li>
+<li>encryption &gt; default &gt; <code>true</code> (why isn't this the default?)</li>
+</ul>
+
+<p>When finished, restart the container to generate a custom <code>registration.yaml</code> for your config:</p>
+
+<pre><code>docker restart mautrix-meta
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir</code> and copy the <code>registration.yaml</code> file to the Synapse data directory with a unique name. Change ownership to match your Docker user for Synapse. Do this as root.</p>
+
+<pre><code>cp ./mautrix-meta/registration.yaml ./synapse/mautrix-meta-registration.yaml
+chown [user-id]:[group-id] ./synapse/mautrix-meta-registration.yaml
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir/synapse</code> and edit <code>homeserver.yaml</code>. Add an app service config line for <code>/data/mautrix-meta-registration.yaml</code>. This will register the bridge as an appservice on your Matrix Synapse server.</p>
+
+<pre><code>app_service_config_files:
+...
+- /data/mautrix-meta-registration.yaml
+...
+</code></pre>
+
+<p>Restart Synapse for the config changes to take effect. Then restart the bridge.</p>
+
+<pre><code>docker restart matrix-synapse
+docker restart mautrix-meta
+</code></pre>
+
+<p>To test the bridge, start a chat with the bot, e.g. <code>@metabot:server.example.com</code>, and say <code>help</code>. Be sure to use your actual Matrix server domain.</p>
+
+<p>Chat account login info: https://docs.mau.fi/bridges/go/meta/authentication.html <br />
+Full bridge documentation: https://docs.mau.fi/bridges/general/docker-setup.html?bridge=meta</p>
+
+<hr />
+
+<h2>Matrix / iMessage bridge config</h2>
+
+<p>Apple doesn't like to play nice with others, so this bridge is more of a pain to set up and requires a dedicated macOS computer to intercept iMessages.</p>
+
+<p>Extra hardware required:</p>
+
+<ul>
+<li>Computer running macOS
+-- (stretch goal: <a href="https://github.com/segersniels/hackintosh">hackintosh</a> running on a <a href="https://www.lattepanda.com/lattepanda-mu">LattePanda Mu</a>)</li>
+</ul>
+
+<p><strong>On your macOS computer</strong>, <a href="https://mau.dev/mautrix/imessage/-/pipelines?scope=branches&amp;page=1">download the latest Mautrix iMessage executable from the official repository</a>. If you're not sure which version matches the chipset of your macOS computer, use the universal one.</p>
+
+<p>Extract the ZIP archive, rename <code>example-config.yaml</code> to <code>config.yaml</code>, and edit it according to the documentation in the comments. There's a lot to configure.</p>
+
+<p>Some required and/or useful options:</p>
+
+<ul>
+<li>homeserver &gt; address &gt; <code>http://[your-server-IP]:8008</code></li>
+<li>homeserver> websocket_proxy &gt; <code>wss://[your-server-IP]:29331</code></li>
+<li>homeserver &gt; domain &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; bot &gt; username, displayname, avatar &gt; have some fun</li>
+<li>imessage &gt; contacts_mode &gt; <code>mac</code> (the default may not work, this will)</li>
+<li>bridge &gt; user &gt; change @you to your username, example.com to your matrix domain</li>
+<li>bridge &gt; personal<em>filtering</em>spaces &gt; <code>true</code> (create an iMessages space in Matrix, don't jsut blob iMessages together with messages from other sources)</li>
+<li>bridge &gt; max<em>handle</em>seconds &gt; <code>300</code> (don't send Matrix messages older than 5 minutes to the iMessage recipient, e.g. if the bridge has issues)</li>
+<li>bridge &gt; media_viewer (do nothing, the default settings support high quality media files within iMessage's size limits)</li>
+<li>bridge &gt; reroute<em>mms</em>group_replies &gt; <code>true</code> (make group messages work properly when MMS users are included in iMessage groups)</li>
+<li>bridge &gt; private<em>chat</em>portal_meta &gt; <code>always</code> (use room names and avatars from iMessage in encrypted chats, the only chat type we'll use)</li>
+<li>encryption &gt; allow &gt; <code>true</code> (why isn't this the default?)</li>
+<li>encryption &gt; default &gt; <code>true</code> (why isn't this the default?)</li>
+</ul>
+
+<p>Run <code>mautrix-imessage</code> in the terminal on your macOS computer with the flag set to make it generate a registration file. Apple will stop you at first and complain about both the application and required library coming from unknown developers. Tell Apple to stop complaining in your security settings.</p>
+
+<pre><code>./mautrix-imessage -g
+</code></pre>
+
+<p>Edit the generated <code>registration.yaml</code> file and set the <code>url</code> field to point to the Mautrix websockets proxy that doesn't exist yet. You'll set that up soon.</p>
+
+<pre><code>id: imessage
+url: http://mautrix-wsproxy:29331
+...
+</code></pre>
+
+<p>Rename <code>registration.yaml</code> to <code>mautrix-imessage-registration.yaml</code> and plop it in the Synapse data directory on your Matrix server, i.e. <code>/your-data-dir/synapse</code>. Only you know where to do the plopping.</p>
+
+<p><strong>On your Matrix server</strong>, navigate to <code>/your-data-dir/synapse</code> and edit <code>homeserver.yaml</code>. Add an app service config line for <code>/data/mautrix-signal-registration.yaml</code>. This will register the bridge as an appservice on your Matrix Synapse server.</p>
+
+<pre><code>app_service_config_files:
+...
+- /data/mautrix-signal-registration.yaml
+...
+</code></pre>
+
+<p>Get the <code>as_token</code> and <code>hs_token</code> values from <code>mautrix-imessage-registration.yaml</code>. You'll use these to configure the Mautrix websockets proxy server in your Docker compose file.</p>
+
+<p>Docker compose for the <a href="https://github.com/mautrix/wsproxy">mautrix-wsproxy</a>:</p>
+
+<pre><code>services:
+  mautrix-wsproxy:
+    container_name: mautrix-wsproxy
+    image: dock.mau.dev/mautrix/wsproxy
+    restart: unless-stopped
+    ports:
+      - 29331
+    environment:
+      APPSERVICE_ID: imessage
+      AS_TOKEN: as_token_from_mautrix_imessage_registration
+      HS_TOKEN: hs_token_from_mautrix_imessage_registration
+      # These URLs will work as-is with docker networking
+      SYNC_PROXY_URL: http://mautrix-syncproxy:29332
+      SYNC_PROXY_WSPROXY_URL: http://mautrix-wsproxy:29331
+      SYNC_PROXY_SHARED_SECRET: random_string_of_your_choice
+  mautrix-syncproxy:
+    container_name: mautrix-syncproxy
+    image: dock.mau.dev/mautrix/syncproxy
+    restart: unless-stopped
+    environment:
+      #LISTEN_ADDRESS: ":29332"
+      DATABASE_URL: postgres://synapse:[your-postgres-password]@http://[your-server-IP]:8009/mautrix_syncproxy
+      HOMESERVER_URL: http://192.168.1.80:8008
+      SHARED_SECRET: random_string_of_your_choice
+</code></pre>
+
+<p>You might notice that <code>DATABASE_URL</code> points to a database that doesn't exist yet. Create that database on your <code>matrix-db</code> instance:</p>
+
+<pre><code>docker exec -e PGPASSWORD=&lt;your-postgres-password&gt; -it matrix-db \
+  psql -U synapse -d postgres \
+  -c "CREATE DATABASE \"mautrix-syncproxy\";"
+</code></pre>
+
+<p>Restart Synapse for the config changes to take effect. Then start the proxy servers.</p>
+
+<pre><code>docker restart matrix-synapse
+docker compose up -d
+</code></pre>
+
+<p><strong>On your macOS computer</strong>, go to System Preferences -> Security &amp; Privacy -> Privacy -> Full Disk Access and grant access to Terminal. Make sure you're signed into iMessage, and the Messages app running. Then run <code>mautrix-imessage</code> in the terminal:</p>
+
+<pre><code>./mautrix-imessage
+</code></pre>
+
+<p>iMessage will ask you to grant access to the terminal app and your contacts. Do it!</p>
+
+<p>To test the bridge, start a chat with the bot, e.g. <code>@imessagebot:server.example.com</code>, and say <code>help</code>. Be sure to use your actual Matrix server domain.</p>
+
+<p>To log in, first run the command below in a terminal.  Replace <code>matrix_username</code>, <code>matrix_password</code>, and <code>server.example.com</code> with your info.</p>
+
+<pre><code>curl -XPOST -d '{"type":"m.login.password","identifier":{"type": "m.id.user", "user": "matrix_username"},"password":"matrix_password","initial_device_display_name":"iMessage"}' https://server.example.com/_matrix/client/v3/login
+</code></pre>
+
+<p>You'll receive a response with an <code>access_token</code> included. Copy the contents of that token between the parenthesis.</p>
+
+<p>Open a chat in Matrix with the iMessage bot, e.g. <code>@imessagebot:server.example.com</code>, and say:</p>
+
+<pre><code>login-matrix &lt;access_token&gt;
+</code></pre>
+
+<p>The bot will reply with something cryptic like, "Successfully switched puppet," and you're good to go!</p>
+
+<p>Note: If you're not part of the Apple ecosystem, you might want to import your contacts into the Apple Contacts app and sync them with iMessage. That way, the iMessage bridge will be able to grab your contact names and display them in Matrix.</p>
+
+<p>Full bridge documentation: https://docs.mau.fi/bridges/go/imessage/mac/setup.html</p>
+
+<hr />
+
+<h2>Matrix / Signal bridge config</h2>
+
+<p>On your Matrix server, create a data directory for the bridge service inside <code>/your-data-dir</code>:</p>
+
+<pre><code>mkdir /your-data-dir/mautrix-signal
+</code></pre>
+
+<p>Create a database for the bridge on your <code>matrix-db</code> instance:</p>
+
+<pre><code>docker exec -e PGPASSWORD=&lt;your-postgres-password&gt; -it matrix-db \
+  psql -U synapse -d postgres \
+  -c "CREATE DATABASE \"mautrix-signal\";"
+</code></pre>
+
+<p>Docker compose for the <a href="https://github.com/mautrix/signal">mautrix-signal</a> bridge:</p>
+
+<pre><code>services:
+  mautrix-signal:
+    container_name: mautrix-signal
+    image: dock.mau.dev/mautrix/signal:latest
+    restart: unless-stopped
+    volumes:
+    - /your-data-dir/mautrix-signal:/data
+</code></pre>
+
+<p>Start and stop the bridge to create a config file:</p>
+
+<pre><code>docker compose up -d
+docker stop mautrix-signal
+</code></pre>
+
+<p>Edit the config file <code>/your-data-dir/mautrix-signal/config.yaml</code> according to the official documentation. There's a lot to configure.</p>
+
+<p>Some required and/or useful options:</p>
+
+<ul>
+<li>network &gt; displayname_template &gt; <code>'{{or .ContactName .ProfileName .PhoneNumber "Unknown user"}} (Signal)'</code> (full names from phone contacts with fallbacks to the rest, append Signal)</li>
+<li>bridge &gt; bridge<em>matrix</em>leave &gt; <code>true</code> (sync leaving groups)</li>
+<li>bridge &gt; permissions &gt; @admin to your admin username, example.com to your matrix domain</li>
+<li>database &gt; uri &gt; <code>postgres://synapse:[your-super-sercret-password]@[your-server-IP]:8009/mautrix-whatsapp?sslmode=disable</code></li>
+<li>homeserver &gt; address &gt; <code>http://[your-server-IP]:8008</code></li>
+<li>homeserver &gt; domain &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; address &gt; <code>http://mautrix-signal:29328</code></li>
+<li>appservice &gt; public_address &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; hostname &gt; <code>0.0.0.0</code></li>
+<li>appservice &gt; bot &gt; username, displayname, avatar &gt; have some fun</li>
+<li>backfill &gt; enabled &gt; <code>true</code> (fetch old / missed messages)</li>
+<li>double<em>puppet &gt; secrets &gt; <code>[your-matrix-domain]: as_token:[your-token]</code> (as</em>token from <code>/your-data-dir/synapse/doublepuppet.yaml</code>)</li>
+<li>encryption &gt; allow &gt; <code>true</code> (why isn't this the default?)</li>
+<li>encryption &gt; default &gt; <code>true</code> (why isn't this the default?)</li>
+</ul>
+
+<p>When finished, restart the container to generate a custom <code>registration.yaml</code> for your config:</p>
+
+<pre><code>docker restart mautrix-signal
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir</code> and copy the <code>registration.yaml</code> file to the Synapse data directory with a unique name. Change ownership to match your Docker user for Synapse. Do this as root.</p>
+
+<pre><code>cp ./mautrix-signal/registration.yaml ./synapse/mautrix-signal-registration.yaml
+chown [user-id]:[group-id] ./synapse/mautrix-signal-registration.yaml
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir/synapse</code> and edit <code>homeserver.yaml</code>. Add an app service config line for <code>/data/mautrix-signal-registration.yaml</code>. This will register the bridge as an appservice on your Matrix Synapse server.</p>
+
+<pre><code>app_service_config_files:
+...
+- /data/mautrix-signal-registration.yaml
+...
+</code></pre>
+
+<p>Restart Synapse for the config changes to take effect. Then restart the bridge.</p>
+
+<pre><code>docker restart matrix-synapse
+docker restart mautrix-signal
+</code></pre>
+
+<p>To test the bridge, start a chat with the bot, e.g. <code>@signalbot:server.example.com</code>, and say <code>help</code>. Be sure to use your actual Matrix server domain.</p>
+
+<p>Chat account login info: https://docs.mau.fi/bridges/go/signal/authentication.html <br />
+Full bridge documentation: https://docs.mau.fi/bridges/general/docker-setup.html?bridge=signal</p>
+
+<hr />
+
+<h2>Matrix / Slack bridge config</h2>
+
+<p>On your Matrix server, create a data directory for the bridge service inside <code>/your-data-dir</code>:</p>
+
+<pre><code>mkdir /your-data-dir/mautrix-slack
+</code></pre>
+
+<p>Create a database for the bridge on your <code>matrix-db</code> instance:</p>
+
+<pre><code>docker exec -e PGPASSWORD=&lt;your-postgres-password&gt; -it matrix-db \
+  psql -U synapse -d postgres \
+  -c "CREATE DATABASE \"mautrix-slack\";"
+</code></pre>
+
+<p>Docker compose for the <a href="https://github.com/mautrix/slack">mautrix-slack</a> bridge:</p>
+
+<pre><code>services:
+  mautrix-slack:
+    container_name: mautrix-slack
+    image: dock.mau.dev/mautrix/slack:latest
+    restart: unless-stopped
+    volumes:
+    - /your-data-dir/mautrix-slack:/data
+</code></pre>
+
+<p>Start and stop the bridge to create a config file:</p>
+
+<pre><code>docker compose up -d
+docker stop mautrix-slack
+</code></pre>
+
+<p>Edit the config file <code>/your-data-dir/mautrix-whatsapp/config.yaml</code> according to the official documentation. There's a lot to configure.</p>
+
+<p>Some required and/or useful options:</p>
+
+<ul>
+<li>network &gt; displayname_template &gt; <code>'{{or .Profile.DisplayName .Profile.RealName .Name}}{{if .IsBot}} (Bot){{end}} (Slack)'</code> (append Slack)</li>
+<li>network &gt; participant<em>sync</em>count &gt; <code>10</code> (users from Slack channels to show in Matrix on initial sync)</li>
+<li>network &gt; mute<em>channels</em>by_default &gt; <code>true</code> (for sanity, notifications disabled by default)</li>
+<li>bridge &gt; bridge<em>matrix</em>leave &gt; <code>true</code> (sync leaving channels)</li>
+<li>bridge &gt; permissions &gt; @admin to your admin username, example.com to your matrix domain</li>
+<li>database &gt; uri &gt; <code>postgres://synapse:[your-super-sercret-password]@[your-server-IP]:8009/mautrix-whatsapp?sslmode=disable</code></li>
+<li>homeserver &gt; address &gt; <code>http://[your-server-IP]:8008</code></li>
+<li>homeserver &gt; domain &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; address &gt; <code>http://mautrix-slack:29335</code></li>
+<li>appservice &gt; public_address &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; hostname &gt; <code>0.0.0.0</code></li>
+<li>appservice &gt; bot &gt; username, displayname, avatar &gt; have some fun</li>
+<li>backfill &gt; enabled &gt; <code>true</code> (fetch old / missed messages)</li>
+<li>double<em>puppet &gt; secrets &gt; <code>[your-matrix-domain]: as_token:[your-token]</code> (as</em>token from <code>/your-data-dir/synapse/doublepuppet.yaml</code>)</li>
+<li>encryption &gt; allow &gt; <code>true</code> (why isn't this the default?)</li>
+<li>encryption &gt; default &gt; <code>true</code> (why isn't this the default?)</li>
+</ul>
+
+<p>When finished, restart the container to regenerate a custom <code>registration.yaml</code> for your config:</p>
+
+<pre><code>docker restart mautrix-slack
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir</code> and copy the <code>registration.yaml</code> file to the Synapse data directory with a unique name. Change ownership to match your Docker user for Synapse. Do this as root.</p>
+
+<pre><code>cp ./mautrix-slack/registration.yaml ./synapse/mautrix-slack-registration.yaml
+chown [user-id]:[group-id] ./synapse/mautrix-slack-registration.yaml
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir/synapse</code> and edit <code>homeserver.yaml</code>. Add an app service config line for <code>/data/mautrix-whatsapp-registration.yaml</code>. This will register the bridge as an appservice on your Matrix Synapse server.</p>
+
+<pre><code>app_service_config_files:
+...
+- /data/mautrix-whatsapp-registration.yaml
+...
+</code></pre>
+
+<p>Restart Synapse for the config changes to take effect. Then restart the bridge.</p>
+
+<pre><code>docker restart matrix-synapse
+docker restart mautrix-slack
+</code></pre>
+
+<p>To test the bridge, start a chat with the bot, e.g. <code>@slackbot:server.example.com</code>, and say <code>help</code>. Be sure to use your actual Matrix server domain.</p>
+
+<p>Chat account login info: https://docs.mau.fi/bridges/go/slack/authentication.html <br />
+Full bridge documentation: https://docs.mau.fi/bridges/general/docker-setup.html?bridge=slack</p>
+
+<hr />
+
+<h2>Matrix / SMS bridge config</h2>
+
+<p>SMS/MMS text message bridging is supported via the Google Messages app. This means, unfortunately, that it requires that you first send all of your text messages to Google before they can be intercepted by the bridge.</p>
+
+<p>On your Matrix server, create a data directory for the bridge service inside <code>/your-data-dir</code>:</p>
+
+<pre><code>mkdir /your-data-dir/mautrix-gmessages
+</code></pre>
+
+<p>Create a database for the bridge on your <code>matrix-db</code> instance:</p>
+
+<pre><code>docker exec -e PGPASSWORD=&lt;your-postgres-password&gt; -it matrix-db \
+  psql -U synapse -d postgres \
+  -c "CREATE DATABASE \"mautrix-gmessages\";"
+</code></pre>
+
+<p>Docker compose for the <a href="https://github.com/mautrix/gmessages">mautrix-gmessages</a> bridge:</p>
+
+<pre><code>services:
+  mautrix-gmessages:
+    container_name: mautrix-gmessages
+    image: dock.mau.dev/mautrix/gmessages:latest
+    restart: unless-stopped
+    volumes:
+    - /your-data-dir/mautrix-gmessages:/data
+</code></pre>
+
+<p>Start and stop the bridge to create a config file:</p>
+
+<pre><code>docker compose up -d
+docker stop mautrix-gmessages
+</code></pre>
+
+<p>Edit the config file <code>/your-data-dir/mautrix-gmessages/config.yaml</code> according to the official documentation. There's a lot to configure.</p>
+
+<p>Some required and/or useful options:</p>
+
+<ul>
+<li>network &gt; displayname_template &gt; <code>"{{or .FullName .PhoneNumber}} (SMS)"</code> (append SMS)</li>
+<li>network &gt; aggressive_reconnect &gt; <code>true</code> (keep priority over Google Messages Web)</li>
+<li>bridge &gt; bridge<em>matrix</em>leave &gt; <code>true</code> (sync leaving groups)</li>
+<li>bridge &gt; permissions &gt; @admin to your admin username, example.com to your matrix domain</li>
+<li>database &gt; uri &gt; <code>postgres://synapse:[your-super-sercret-password]@[your-server-IP]:8009/mautrix-gmessages?sslmode=disable</code></li>
+<li>homeserver &gt; address &gt; <code>http://[your-server-IP]:8008</code></li>
+<li>homeserver &gt; domain &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; address &gt; <code>http://mautrix-whatsapp:29318</code></li>
+<li>appservice &gt; public_address &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; hostname &gt; <code>0.0.0.0</code></li>
+<li>appservice &gt; bot &gt; username, displayname, avatar &gt; have some fun</li>
+<li>backfill &gt; enabled &gt; <code>true</code> (fetch old / missed messages)</li>
+<li>double<em>puppet &gt; secrets &gt; <code>[your-matrix-domain]: as_token:[your-token]</code> (as</em>token from <code>/your-data-dir/synapse/doublepuppet.yaml</code>)</li>
+<li>encryption &gt; allow &gt; <code>true</code> (why isn't this the default?)</li>
+<li>encryption &gt; default &gt; <code>true</code> (why isn't this the default?)</li>
+</ul>
+
+<p>When finished, restart the container to regenerate a custom <code>registration.yaml</code> for your config:</p>
+
+<pre><code>docker restart mautrix-gmessages
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir</code> and copy the <code>registration.yaml</code> file to the Synapse data directory with a unique name. Change ownership to match your Docker user for Synapse. Do this as root.</p>
+
+<pre><code>cp ./mautrix-gmessages/registration.yaml ./synapse/mautrix-gmessages-registration.yaml
+chown [user-id]:[group-id] ./synapse/mautrix-gmessages-registration.yaml
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir/synapse</code> and edit <code>homeserver.yaml</code>. Add an app service config line for <code>/data/mautrix-whatsapp-registration.yaml</code>. This will register the bridge as an appservice on your Matrix Synapse server.</p>
+
+<pre><code>app_service_config_files:
+...
+- /data/mautrix-gmessages-registration.yaml
+...
+</code></pre>
+
+<p>Restart Synapse for the config changes to take effect. Then restart the bridge.</p>
+
+<pre><code>docker restart matrix-synapse
+docker restart mautrix-gmessages
+</code></pre>
+
+<p>To test the bridge, start a chat with the bot, e.g. <code>@gmessagesbot:server.example.com</code>, and say <code>help</code>. Be sure to use your actual Matrix server domain.</p>
+
+<p>Chat account login info: https://docs.mau.fi/bridges/go/gmessages/authentication.html <br />
+Full bridge documentation: https://docs.mau.fi/bridges/general/docker-setup.html?bridge=gmessages</p>
+
+<hr />
+
+<h2>Matrix / WhatsApp bridge config</h2>
+
+<p>On your Matrix server, create a data directory for the bridge service inside <code>/your-data-dir</code>:</p>
+
+<pre><code>mkdir /your-data-dir/mautrix-whatsapp
+</code></pre>
+
+<p>Create a database for the bridge on your <code>matrix-db</code> instance:</p>
+
+<pre><code>docker exec -e PGPASSWORD=&lt;your-postgres-password&gt; -it matrix-db \
+  psql -U synapse -d postgres \
+  -c "CREATE DATABASE \"mautrix-whatsapp\";"
+</code></pre>
+
+<p>Docker compose for the <a href="https://github.com/mautrix/whatsapp">mautrix-whatsapp</a> bridge:</p>
+
+<pre><code>services:
+  mautrix-whatsapp:
+    container_name: mautrix-whatsapp
+    image: dock.mau.dev/mautrix/whatsapp:latest
+    restart: unless-stopped
+    volumes:
+    - /your-data-dir/mautrix-whatsapp:/data
+</code></pre>
+
+<p>Start and stop the bridge to create a config file:</p>
+
+<pre><code>docker compose up -d
+docker stop mautrix-whatsapp
+</code></pre>
+
+<p>Edit the config file <code>/your-data-dir/mautrix-whatsapp/config.yaml</code> according to the official documentation. There's a lot to configure.</p>
+
+<p>Some required and/or useful options:</p>
+
+<ul>
+<li>network &gt; displayname_template &gt; <code>"{{or .FullName .BusinessName .PushName .Phone}} (WA)"</code> (full names from phone contacts with fallbacks to the rest, append WA)</li>
+<li>network &gt; enable<em>status</em>broadcast &gt; <code>false</code> (no user statuses, just chats)</li>
+<li>network &gt; archive_tag &gt; <code>m.lowpriority</code> (tag archived chats as low priority)</li>
+<li>network &gt; whatsapp_thumbnail &gt; <code>true</code> (use WhatsApp thumbnails)</li>
+<li>network &gt; url_previews &gt; <code>true</code> (generate URL previews)</li>
+<li>bridge &gt; bridge<em>matrix</em>leave &gt; <code>true</code> (sync leaving groups)</li>
+<li>bridge &gt; permissions &gt; @admin to your admin username, example.com to your matrix domain</li>
+<li>database &gt; uri &gt; <code>postgres://synapse:[your-super-sercret-password]@[your-server-IP]:8009/mautrix-whatsapp?sslmode=disable</code></li>
+<li>homeserver &gt; address &gt; <code>http://[your-server-IP]:8008</code></li>
+<li>homeserver &gt; domain &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; address &gt; <code>http://mautrix-whatsapp:29318</code></li>
+<li>appservice &gt; public_address &gt; <code>[your-matrix-domain]</code></li>
+<li>appservice &gt; hostname &gt; <code>0.0.0.0</code></li>
+<li>appservice &gt; bot &gt; username, displayname, avatar &gt; have some fun</li>
+<li>backfill &gt; enabled &gt; <code>true</code> (fetch old / missed messages)</li>
+<li>double<em>puppet &gt; secrets &gt; <code>[your-matrix-domain]: as_token:[your-token]</code> (as</em>token from <code>/your-data-dir/synapse/doublepuppet.yaml</code>)</li>
+<li>encryption &gt; allow &gt; <code>true</code> (why isn't this the default?)</li>
+<li>encryption &gt; default &gt; <code>true</code> (why isn't this the default?)</li>
+</ul>
+
+<p>When finished, restart the container to regenerate a custom <code>registration.yaml</code> for your config:</p>
+
+<pre><code>docker restart mautrix-whatsapp
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir</code> and copy the <code>registration.yaml</code> file to the Synapse data directory with a unique name. Change ownership to match your Docker user for Synapse. Do this as root.</p>
+
+<pre><code>cp ./mautrix-whatsapp/registration.yaml ./synapse/mautrix-whatsapp-registration.yaml
+chown [user-id]:[group-id] ./synapse/mautrix-whatsapp-registration.yaml
+</code></pre>
+
+<p>Navigate to <code>/your-data-dir/synapse</code> and edit <code>homeserver.yaml</code>. Add an app service config line for <code>/data/mautrix-whatsapp-registration.yaml</code>. This will register the bridge as an appservice on your Matrix Synapse server.</p>
+
+<pre><code>app_service_config_files:
+...
+- /data/mautrix-whatsapp-registration.yaml
+...
+</code></pre>
+
+<p>Restart Synapse for the config changes to take effect. Then restart the bridge.</p>
+
+<pre><code>docker restart matrix-synapse
+docker restart mautrix-whatsapp
+</code></pre>
+
+<p>To test the bridge, start a chat with the bot, e.g. <code>@whatsappbot:server.example.com</code>, and say <code>help</code>. Be sure to use your actual Matrix server domain.</p>
+
+<p>Chat account login info: https://docs.mau.fi/bridges/go/whatsapp/authentication.html <br />
+Full bridge documentation: https://docs.mau.fi/bridges/general/docker-setup.html?bridge=whatsapp</p>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Software, Tools</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.instagram.com/"
+                  class="icon brands style2 fa-instagram"
+                  ><span class="label">Instagram</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.facebook.com/tnoms/"
+                  class="icon brands style2 fa-facebook-f"
+                  ><span class="label">Facebook</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

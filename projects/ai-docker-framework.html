@@ -490,10 +490,13 @@ docker run --runtime=nvidia --privileged --cap-add=ALL --name text-generation-we
 
 <p>The build instructions on GitHub have broken dependencies. Below is a working Dockerfile, which includes fixes for those dependencies automatically runs the MaskGCT Gradio app at startup.</p>
 
-<pre><code>FROM nvidia/cuda:12.0.0-devel-ubuntu22.04
+<pre><code>FROM nvidia/cuda:12.0.0-runtime-ubuntu22.04
 
 # Optional: Change this to your local timezone
 ENV TZ=America/Chicago
+
+# Use old Ubuntu repo for compatability with MaskGCT install [SECURITY RISK]
+RUN sed -i 's|http://security.ubuntu.com/ubuntu|http://us.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list    
 
 RUN apt update -y
 RUN apt install software-properties-common -y
@@ -521,8 +524,8 @@ WORKDIR /root
 RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
 
 # Install MaskGCT system dependencies and clean up apt cache
-RUN apt-get install espeak-ng cmake ffmpeg -y
-RUN apt-get clean -y
+RUN apt install espeak-ng cmake ffmpeg --fix-missing -y
+RUN apt clean -y
 
 # Clone Amphion repository with sparse-checkout for MaskGCT
 RUN git clone --no-checkout --filter=blob:none https://github.com/open-mmlab/Amphion.git

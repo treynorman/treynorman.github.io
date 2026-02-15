@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>PersonaPod: Open Source AI News Podcast Generator | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>PersonaPod: Open Source AI News Podcast Generator</h1>
+
+<h4>February 6, 2026</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>Open source AI podcast generator that scrapes news articles and generates news segments using cloned voices and customizable personas. Runs locally on open source AI models with automatic Docker container management for efficient resource utilization (only 15 GB VRAM required).</p>
+
+<p><a href="https://personapod.lol/" class="button">Demo</a>
+
+<hr />
+
+<h2>Video</h2>
+
+<article class="video-container"><iframe class="video" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" src="https://www.youtube.com/embed/GH1NmKd2r3I"></iframe></article>
+
+<hr />
+
+<h2>Background</h2>
+
+<p>The news cycle needs more positivity. Initially inspired by Bob Ross, my aim with <a href="https://github.com/treynorman/PersonaPod">PersonaPod</a> was to deliver that positivity in short, easy to digest daily news podcasts. LLM's offer the ability to both draft news segments with less sensationalism and mimic a defined personality. Modern TTS models offer the ability to clone familiar voices.</p>
+
+<p>TTS was the primary challenge for this project, and I kept this idea on the back burner for about a year while I experimented with new TTS models. While numerous models offer voice cloning in inference, few of them deliver high quality, consistent results. Even fewer models have the ability to mimic timbre and background noise. It's far more common that a TTS model demands clean and clear voice samples and outputs clean and clear speech, making it nearly impossible to mimic something like a 1920's transatlantic style broadcast.</p>
+
+<p>In late 2024, a lesser known TTS model called <a href="[https://maskgct.github.io/](https://maskgct.github.io/)">MaskGCT</a> was released and performed spectacularly for my needs. However, the model was only capable of delivering short audio segments, contained broken dependencies, wasn't quite ready for production. On my first day working with it, I built a Docker framework to resolve all dependency issues at build time and allow API access to the MaskGCT demo. I also built a chunker to break long text segments into smaller chunks that MaskGCT could process, generate speech from text chunk, then merge all of the generated audio clips together using ffmpeg.</p>
+
+<p>In early 2025, I wrote code to fetch news article text from any news RSS feed and transform it into a news segment using an open source LLM running inside a llama.cpp Docker container. The news segment could then be covered to speech using a cloned voice with <a href="[https://github.com/treynorman/MaskGCT-Docker](https://github.com/treynorman/MaskGCT-Docker)">my MaskGCT Docker container</a>. Because my GPU isn't capable of running both the LLM and TTS Docker containers simultaneously, I also added functions to start and stop each container during generation.</p>
+
+<p>Turning the news segments into a podcast is pretty straightforward. Since podcasts are fundamentally just RSS feeds that link to MP3 files online, my final step was to find a public web host for those MP3's. Cloudflare offers a generous free tier for hosting the podcast. The last bit of code I wrote converts the output WAV files to MP3 VBR 2 and manages uploading generated podcast episodes to Cloudflare. It also updates the publicly accessible podcast RSS feed with entries for newly generated episodes. To demo the project, I built a simple web app to read the podcast RSS feed and play it in a web browser. </p>
+
+<p>Although PersonaPod was functionally complete by late February 2025, it was still a bit too hacked together to be presentable. I shelved it for a while. In December 2025, I cleaned up the code to launch the project. I also added a function to overlay background tracks – with the ability to offset them for use as and intro and fade them out – making the completed episodes much more vibrant.</p>
+
+<h3>Models &amp; Services Employed</h3>
+
+<p><strong><a href="https://maskgct.github.io/">MaskGCT: Zero-Shot Text-to-Speech with Masked Generative Codec Transformer</a></strong></p>
+
+<p>MaskGCT is a highly performant text-to-speech (TTS) model with the ability to clone voices in inference using a voice clip ~5-10 seconds long.</p>
+
+<p>Unlike models built on an autoregressive / diffusion decoder architecture, MaskGCT does not require clean voice samples or use a denoising processes to generate outputs. As a result it is able to preserve the microphone dynamics, tone, and overall ambiance of the voice sample. Rather than erroneously matching features like room dynamics or environment noise, failing to clone the provided voice sample, MaskGCT is far less sensitive and reliably matches inputs.</p>
+
+<p>MaskGCT was not released in a Docker container or designed to run as a service on the local network. I've provided a container to encapsulate it, making it accessible on the local network via API.</p>
+
+<p><strong><a href="https://huggingface.co/Qwen/Qwen3-32B">Qwen3-32b: Reasoning LLM with Hybrid Thinking Modes</a></strong> (used in demos)</p>
+
+<p>Qwen3 is a series of open source LLMs from Alibaba with reasoning capabilities that can be enabled or disabled through prompting.</p>
+
+<p>Qwen3-32b with 4-bit quantization has been tested for LLM inference and performs well for both summarization and persona preservation with thinking mode enabled. It consumes nearly 24 GB of VRAM during operation. Smaller LLMs can be used on systems with tighter hardware constraints.</p>
+
+<p><strong><a href="https://github.com/ggml-org/llama.cpp">llama.cpp: LLM inference in C/C++</a></strong></p>
+
+<p>llama.cpp is used to run large language models (LLMs) locally. It is fast, robust, and fully free and open source. Since llama.cpp uses an Open AI compatible API, LLM API calls in this project can easily be pointed to another service with minor modification to the code base.</p>
+
+<p><strong><a href="https://www.cloudflare.com/developer-platform/products/r2/">Cloudflare R2 Free Tier: S3-compatible Object Storage</a></strong></p>
+
+<p>Cloudflare R2 offers a very generous free tier for hosting the generated podcast, making it publicly accessible. With MP3 VBR-V2 compression for the podcast audio, multiple years of daily news podcast episodes can be hosted for free.</p>
+
+<p><strong><a href="https://www.docker.com/">Docker</a></strong></p>
+
+<p>Docker containers are used for all AI services in this project. LLM and TTS containers are started and stopped as needed, allowing the largest possible models to be used on systems with limited VRAM.</p>
+
+<hr />
+
+<h2>Technical Details</h2>
+
+<p>The system processes news through several stages to generate a podcast episode:</p>
+
+<ol>
+<li>Grab the latest news from any news website RSS feed</li>
+<li>Follow news article links and extract the text</li>
+<li>Use llama.cpp to summarize the top N news articles</li>
+<li>Generate a news segment with llama.cpp using a defined persona</li>
+<li>Use MaskGCT to clone a voice and deliver the news segment by chunking and stitching generated voice clips</li>
+<li>Add background music with configurable initial offset fade-out duration</li>
+<li>Compress final output with MP3 VBR 2 compression for performance and minimal host server load</li>
+<li>Maintain a publicly accessible news podcast RSS feed (Cloudflare free tier)</li>
+</ol>
+
+<p>Since the project is designed to run locally on a single GPU, managing the resource requirements of the AI models is crucial. To address this, I implemented a container orchestration system that swaps between local LLM and TTS models during podcast generation. This allows PersonaPod to run on consumer hardware while still utilizing state-of-the-art open source AI models.</p>
+
+<p>The project includes a web podcast player for browser-based listening and maintains a podcast RSS feed that updates with new episodes. For daily automation, a cron job can be configured to generate new episodes at scheduled times.</p>
+
+<p>While the number of moving parts makes installation somewhat complex, I've provided detailed documentation and Docker containers to simplify the process. The MaskGCT model, in particular, required creating a custom Docker container to expose its API for network access.</p>
+
+<p>PersonaPod is released as an open source project under the MIT license, inviting others to experiment with different personas and voices. The potential applications extend beyond news delivery to educational content, storytelling, and more. Any RSS feed can be converted into a podcast.</p>
+
+<hr />
+
+<h2>Installation &amp; Setup</h2>
+
+<p>Build and run a MaskGCT inside Docker container.</p>
+
+<p>MaskGCT does not include a native Docker container. I've provided a Dockerfile that builds and encapsulates the project, resolves dependency issues, and exposes the Gradio app API to listen on all network interfaces. </p>
+
+<p>This MaskGCT Dockerfile is provided in a <a href="https://github.com/treynorman/MaskGCT-Docker">separate GitHub repo</a>.</p>
+
+<pre><code>git clone https://github.com/treynorman/MaskGCT-Docker
+cd "MaskGCT-Docker"
+docker build -t Amphion/mask-gct .
+docker run --runtime=nvidia --privileged --cap-add=ALL --name mask-gct -p 2121:2121 -p 2222:4200 -p 7860:7860 -d Amphion/mask-gct
+</code></pre>
+
+<p>Clone this GitHub repo.</p>
+
+<pre><code>git clone https://github.com/treynorman/PersonaPod
+</code></pre>
+
+<p>Create and activate a virtual environment for the project. Then, install all dependencies from <code>requirements.txt</code>.</p>
+
+<pre><code>cd PersonaPod
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+</code></pre>
+
+<p><a href="https://www.ffmpeg.org/download.html">Install ffmpeg</a>, e.g. for Debian based Linux systems:</p>
+
+<pre><code>sudo apt install ffmpeg
+</code></pre>
+
+<p>Create a public Cloudflare R2 bucket for hosting the podcast. Take note of the Cloudflare account ID, bucket name, and API keys.</p>
+
+<ol>
+<li>In the Cloudflare dashboard, go to the R2 object storage page, go to <strong>Overview</strong></li>
+<li>Select Create bucket.</li>
+<li>Enter the bucket name, e.g. <code>ai-news-pod</code></li>
+<li>Select Create bucket.</li>
+<li>Go to <strong>Object Storage</strong> &gt; <strong>Manage API Tokens</strong></li>
+<li>Create a <strong>Custom API Token</strong></li>
+</ol>
+
+<p>Upload the podcast player web application and image assets to the Cloudflare R2 bucket.</p>
+
+<pre><code>├── assets
+│   ├── kmart-radio.jpg
+│   ├── main-image.jpg
+│   └── rss-parser.min.js
+├── favicon (optional)
+│   ├── apple-touch-icon.png
+│   ├── favicon-16x16.png
+│   ├── favicon-32x32.png
+│   ├── favicon-96x96.png
+│   ├── favicon.ico
+│   ├── favicon.svg
+│   ├── site.webmanifest
+│   ├── web-app-manifest-192x192.png
+│   └── web-app-manifest-512x512.png
+└── index.html
+</code></pre>
+
+<p>Configure the project using the template provided in <code>.env</code>.</p>
+
+<p>Below is an overview of the required environment variables:</p>
+
+<ol>
+<li>RSS feed for news articles &amp; number of top stories to use.</li>
+<li>Cloudflare account ID, bucket name, and API keys.</li>
+<li>AI Docker container names, boot wait times, and any <em>excluded containers</em> which will remain running during AI operations.</li>
+<li>llama.cpp API base URL and key (any OpenAI compatible LLM API will work)</li>
+<li>MaskGCT API base URL, path to voice samples directory, and voice sample filenames.</li>
+<li>Podcast episode background tracks directory and background track filenames.</li>
+<li>Podcast assets directory on local machine for storing generated episodes and RSS feed XML file.</li>
+<li>Podcast title, description, and RSS feed filename.</li>
+<li>Podcast cloud repo base URL and relative links to images used in the podcast feed.</li>
+<li>Define a custom environment variable for your AI persona with a path to the system prompt TXT file. <code>SYSTEM_CHARACTER_KMART_RADIO</code> is provided as an example.</li>
+</ol>
+
+<p>Define a custom prompt for your podcast persona. An example persona prompt is provided in <code>prompts/system_character_kmart_radio.txt</code>.</p>
+
+<h3>Usage</h3>
+
+<p>Inside <code>main.py</code> use the <code>create_episode</code> function to configure the podcast. This function will pull the latest news, manage local AI containers to generate the episode, upload the episode to cloud storage, and update the podcast RSS feed.</p>
+
+<p><strong>Required Arguments:</strong></p>
+
+<ul>
+<li><code>character_system_prompt</code> (str): Defines the character's personality.</li>
+<li><code>character_voice_ref</code> (str): Path to the voice sample.</li>
+<li><code>episode_image</code> (str): Path to the remote image.</li>
+<li><code>title</code> (str): Episode title.</li>
+</ul>
+
+<p><strong>Optional Arguments:</strong></p>
+
+<ul>
+<li><code>bg_track</code> (str): Path to the background track.</li>
+<li><code>tts_start_delay_ms</code> (int): Delay before podcast voice starts (ms).</li>
+<li><code>fade_duration_s</code> (int): Fade out duration for background track (s).</li>
+</ul>
+
+<p><strong>Example:</strong></p>
+
+<div class="codehilite"><pre><span></span><code><span class="n">create_episode</span><span class="p">(</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">SYSTEM_CHARACTER_KMART_RADIO</span><span class="p">,</span> 
+    <span class="n">c</span><span class="o">.</span><span class="n">MASKGCT_VOICE_REF_KMART_RADIO</span><span class="p">,</span> 
+    <span class="n">c</span><span class="o">.</span><span class="n">PODCAST_EPISODE_IMAGE_URL_KMART_RADIO</span><span class="p">,</span> <span class="s2">&quot;Kmart Radio News&quot;</span><span class="p">,</span> 
+    <span class="n">c</span><span class="o">.</span><span class="n">BG_TRACK_KMART_RADIO</span><span class="p">,</span> <span class="mi">12000</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Run main.py to Generate Podcast Episodes:</strong></p>
+
+<pre><code>source venv/bin/activate
+python3 main.py
+</code></pre>
+
+<p><strong>(Optional) Update Podcast Daily Using a Cron Job:</strong></p>
+
+<p>Create a script, e.g. <code>update-podcast.sh</code>, to run generate new podcast episodes. Be sure to use absolute paths to active the virtual environment and run the code.</p>
+
+<pre><code>#!/bin/bash
+
+cd /absolute/path/to/PersonaPod
+source venv/bin/activate
+python3 main.py
+</code></pre>
+
+<p>Then create a cron job to run the script on a daily schedule, e.g. at 7am each day, and write output to <code>update-podcast-cron.log</code> by following the instructions below.</p>
+
+<p>Run <code>crontab -e</code> and add this line, using absolute paths to the project files on your system.</p>
+
+<pre><code>0 7 * * * /absolute/path/to/PersonaPod/update-podcast.sh &gt;&gt; //absolute/path/to/PersonaPod/update-podcast-cron.log 2&gt;&amp;1
+</code></pre>
+
+<hr />
+
+<h2>Project GitHub</h2>
+
+<p><a href="https://github.com/treynorman/PersonaPod" class="button primary icon solid fa-download" download="">Download</a>
+
+<hr />
+
+<p><em>License: <a href="[https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)">MIT License</a> - Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.</em></p>
+
+<p><em>Category: Software</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.instagram.com/"
+                  class="icon brands style2 fa-instagram"
+                  ><span class="label">Instagram</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.facebook.com/tnoms/"
+                  class="icon brands style2 fa-facebook-f"
+                  ><span class="label">Facebook</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

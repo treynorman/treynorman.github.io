@@ -84,6 +84,34 @@
 
 <hr />
 
+<h2>Install Wine</h2>
+
+<p>If missing, install <code>wine</code> and <code>winetricks</code> after adding the WineHQ repo:</p>
+
+<pre><code>sudo dpkg --add-architecture i386
+sudo mkdir -pm755 /etc/apt/keyrings
+sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/$(lsb_release -cs)/winehq-$(lsb_release -cs).sources
+sudo apt update
+sudo apt install --install-recommends winehq-stable
+</code></pre>
+
+<p>Run <code>winecfg</code> and select Windows 7 as the Windows Version for running applications in Wine:</p>
+
+<pre><code># Applications &gt; Windows Version &gt; Windows 7 &gt; Apply
+</code></pre>
+
+<p>Note: When wine breaks, the easy nuclear option is to purge every portion of it, including the default wine prefix:</p>
+
+<pre><code>sudo apt purge 'wine*'
+sudo apt autoremove --purge
+sudo rm -r ~/.wine
+</code></pre>
+
+<p>Then reinstall, maybe opting for an older stable version.</p>
+
+<hr />
+
 <h2>Configure Winetricks</h2>
 
 <p>Run <code>winetricks</code> to install supporting Windows components and libraries.</p>
@@ -108,12 +136,12 @@
 
 <h2>Install MediaMonkey</h2>
 
-<p>Open a terminal in the same directory as the MediaMonkey installer, then use wine to install it with support for 64-bit Windows architectures:</p>
+<p>Open a terminal in the same directory as the MediaMonkey installer. Then, use wine to install MediaMonkey with support for 64-bit Windows architectures and follow the prompts:</p>
 
 <pre><code>WINEARCH=win64 wine MediaMonkey_3.2.6.1307.exe
 </code></pre>
 
-<p>This example installs the final version of MediaMonkey 3, because it has the largest number of community extensions available. Later versions do not add much value and break extension compatibility.</p>
+<p>I use the final version of MediaMonkey 3, because it has the largest number of community add-ons and scripts by a long shot. <a href="https://www.mediamonkey.com/support/knowledge-base/mediamonkey-general/download-mediamonkey/">You can download MediaMonkey_3.2.6.1307 from the official site using this link</a>. Later versions of MediaMonkey break extension compatibility.</p>
 
 <p>Follow the prompts to install MediaMonkey.</p>
 
@@ -135,7 +163,7 @@
 
 <h2>Optional: Keyboard shortcut to fully shut down MediaMonkey</h2>
 
-<p>Annoyingly, MediaMonkey will likely throw a memory error when you try to exit the application. The window will close, but the application will remain running in the background as a zombie process. The old process must be killed before the MediaMonkey app can be used again. We can automate this process.</p>
+<p>Annoyingly, MediaMonkey will likely throw a memory error when you try to exit the application. The window will close, but the application will remain running in the background as a zombie process. The old process must be killed before MediaMonkey can be used again. To save time fiddling with the task manager, we can make a killswitch to force kill the app using a keyboard shortcut.</p>
 
 <p>First create a script in your user's PATH to make it easy to run from the terminal. On my machine, this means adding the script to the folder <code>~/.local/bin</code>:</p>
 

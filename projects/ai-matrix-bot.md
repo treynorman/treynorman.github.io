@@ -1,4 +1,4 @@
-# Open Source AI Bot for SMS, iMessage, WhatsApp, Signal, etc.
+# Personal AI Bot for SMS, iMessage, WhatsApp, Signal, etc.
 *May 24, 2025*
 
 ## Overview
