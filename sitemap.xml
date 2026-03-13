@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+<url>
+  <loc>https://trey.zip/</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://trey.zip/about.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.90</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/index.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.85</priority>
+</url>
+<url>
+  <loc>https://trey.zip/hello.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/personapod.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/ai-matrix-bot.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/matrix-chat-merge.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/grandma-tunes.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/coffee-roasting.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/dsp-music-library.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/flight-price-scraper.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/dropbox.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/fm-transmitter.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/alphabet-pal.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/brainwave-home-automation.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/mr-bock.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/simpleseq.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/fireplace.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/graphics-card.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/exiftool-multi-core.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/wine-MediaMonkey-setup.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/ai-docker-framework.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/xfce-panel-macos.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/win95-linux.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/film-scanning.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/n64-joystick.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/fireplace/fireplace.html</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://trey.zip/projects/graphics-card/IFL90-disassembly-guide-intel.pdf</loc>
+  <lastmod>2026-02-24T16:39:57+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+
+
+</urlset>

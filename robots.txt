@@ -1,0 +1,10 @@
+User-agent: *
+
+Disallow: /asstes/
+Disallow: /source/
+Disallow: /utils/
+Disallow: /*elements.html
+Disallow: /*.zip$
+Disallow: /*.json$
+
+Sitemap: https://www,trey.zip/sitemap.xml
