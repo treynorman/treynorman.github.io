@@ -7,4 +7,4 @@ Disallow: /*elements.html
 Disallow: /*.zip$
 Disallow: /*.json$
 
-Sitemap: https://www,trey.zip/sitemap.xml
+Sitemap: https://www.trey.zip/sitemap.xml
