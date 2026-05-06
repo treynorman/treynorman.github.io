@@ -1,0 +1,47 @@
+<!-- Major credit to JS Made Easy.com and W3 Schools -->
+
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+        <title>Fireplace</title>
+        <link rel="stylesheet" href="fireplace.css" />
+        <script language=javaScript>
+            function clockon() {
+                thistime = new Date();
+                var hours = thistime.getHours();
+                var minutes = thistime.getMinutes();
+                var ampm;
+                if (eval(hours) > 12) {
+                    hours = hours - 12;
+                    ampm = 'pm';
+                }
+                else if (eval(hours) == 12) {
+                    ampm = 'pm';
+                }
+                else if (eval(hours) < 12 && eval(hours) > 0) {
+                    ampm = 'am';
+                }
+                else {
+                    hours = 12
+                    ampm = 'am';
+                }
+                if (eval(minutes) < 10) {
+                    minutes = '0' + minutes;
+                }
+                thistime = hours + ':' + minutes + ampm;
+                clock.innerHTML = thistime;
+                var timer = setTimeout('clockon()',200);
+            }
+        </script>
+    </head>
+
+    <body onLoad="clockon()">
+        <div id="clock" onclick="document.getElementById('crackle').play();"></div>
+        <audio id="crackle" hidden loop>
+            <source src="fireplace.mp3" type="audio/mp3">
+        </audio>
+    </body>
+
+</html>

@@ -1,0 +1,20 @@
+html {
+	background-image: url(fireplace.gif);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover;
+	min-height: 100%;
+}
+
+#clock {
+	color: #FFFFFF;
+	font-family: Verdana;
+	font-size: 250%;
+	position: absolute;
+	top: 5%;
+	right: 5%;
+}
+
+#crackle {
+	visibility: hidden;
+}
