@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>Coffee Roasting | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>Coffee Roasting</h1>
+
+<h4>February 15, 2021</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>Home coffee roasting from basic heating to temperature rate control, Maillard reaction and caramelization phase modulation, and a basis for PID control.</p>
+
+<hr />
+
+<h2>Video</h2>
+
+<article class="video-container"><iframe class="video" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" src="https://www.youtube.com/embed/9BxUGKazajo"></iframe></article>
+
+<article class="video-container"><iframe class="video" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" src="https://www.youtube.com/embed/0QRqdFm72Z0"></iframe></article>
+
+<hr />
+
+<h2>Background</h2>
+
+<p>I’ve been a coffee lover as long as I can remember. Over the years, I’ve honed my brewing process, focusing on grind consistency, water temperature, mineral composition, and CO₂ dissipation (the "bloom"), often with mixed results. I came to learn that no matter how much I refine my brew, it’s the beans themselves that truly define the cup. At its core, brewing coffee is simply dissolving flavor compounds in water – extracting the good, avoiding the bad. The key to brewing great coffee is sourcing and roasting beans such that they don't have any bad flavors to begin with. </p>
+
+<p>That may sound extreme, but trust me: great coffee can still taste great even if you brew it by boiling lake water and forgetting it for ten minutes while camping. (Not that I would know.)  </p>
+
+<p>Like any agricultural product, the quality of the coffee crop is vital. The plant varietal, climate, altitude at which it’s grown, and the processing method all play major roles in defining the base quality. It’s up to the coffee roaster to make the coffee shine, and doing so is much easier said than done.</p>
+
+<hr />
+
+<h2>Coffee Roasting Journey</h2>
+
+<p>I'm one of the weirdos who enjoyed the downtime of the pandemic. With work travel paused, I decided to get serious about roasting coffee. I’d dabbled in it before using a heat gun and an air popcorn popper, but now I was ready for something more serious. I started with a cheap $50 air roaster purchased on clearance. It did an okay job, but it was too slow to achieve modern specialty roast profiles. It was also quickly recalled for starting fires.</p>
+
+<p>The recall paid out $80, and I used that cash to upgrade to a <a href="https://behmor.com/">Behmor 1600AB</a> – a drum roaster inside a toaster oven. The seller, who was the R&amp;D head at a Chicago commercial bakery, even threw in a book on the science of roasting. I was all in.</p>
+
+<p>But while the Behmor was a step up, it still had limitations. Those limitations became especially clear after I did a deep dive on the science. I made some minor modifications to improve it, but ultimately the Behmor didn't cut it. I needed more heat capacity, better temperature control, and something I could hack more easily.</p>
+
+<p>That led me to the <a href="https://www.sweetmarias.com/fresh-roast-sr800.html">Fresh Roast SR800</a>. It offered faster heat transfer, tighter temperature control, and most importantly, it was easily hackable. I drilled a hole through the top of it soon after it arrived and added a thermocouple to measure the bean temperature. That single change allowed me to collect real data and refine my roasting process. Oddly enough, that's really the only hardware difference between a $280 roaster and a $3,000 one: a $10 thermometer. </p>
+
+<hr />
+
+<h2>Next Steps</h2>
+
+<p>The other difference between a $280 roaster and a $3,000 one is automatic temperature control. That isn't particularly groundbreaking. PID control algorithms, designed for this purpose, have been used since the 1930s in countless industrial applications. And yet, they are completely ignored by designers of affordable coffee roasters. This is code that engineers could easily copy, paste, and tune – boosting the retail value of their machines tenfold – but they don't.</p>
+
+<p>You know who can copy and paste that code? Me.</p>
+
+<p>Because the other thing the SR800 offers is a rotary encoder knob to control it. That means that I can hack and control the roaster digitally using a microcontroller to emulate the output of the knob. With feedback from the thermocouple, I can write code to tightly control the temperature and fine-tune the charge phase, Maillard phase, sugar caramelization phase, roast development time, and ROR. And importantly, I can do this without ever touching the high-voltage circuits – achieving precision control without risking a house fire.</p>
+
+<hr />
+
+<h2>Gallery</h2>
+
+<article id="gallery"
+    <span class="slide"><a href="../projects/coffee-roasting/gallery01.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery01.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery02.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery02.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery03.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery03.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery04.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery04.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery05.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery05.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery06.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery06.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery07.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery07.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery08.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery08.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery09.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery09.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery10.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery10.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery11.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery11.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery12.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery12.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/coffee-roasting/gallery13.jpg" class="gallery-link"><img src="../projects/coffee-roasting/gallery13.jpg" alt="Caption." /></a></span>
+</article>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Hardware, Software</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

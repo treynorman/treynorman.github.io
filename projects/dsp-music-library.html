@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>Music Library Loudness Leveling DSP | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>Music Library Loudness Leveling DSP</h1>
+
+<h4>November 9, 2019</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>Broadcast grade loudness leveling to ensure consistent volume across playlist tracks. Brings out subtle harmonies and counter-melodies, which may be inaudible in poor playback conditions.</p>
+
+<hr />
+
+<h2>Gallery</h2>
+
+<article id="gallery"
+    <span class="slide"><a href="../projects/dsp-music-library/gallery01.jpg" class="gallery-link"><img src="../projects/dsp-music-library/gallery01.jpg" alt="Caption." /></a></span>
+</article>
+
+<hr />
+
+<h2>Details</h2>
+
+<p>I'll preface this with a disclaimer: I'm an audiophile who prefers to listen to music as it was recorded. And listen on equipment that preserves the original mastering. </p>
+
+<p>However, in many listening environments and low-end speakers – cars, Bluetooth speakers, most soundbars – harmonies and counter-melodies get buried in the noise floor. Additionally, albums tend to be mastered to different peak loudness levels with varying levels of dynamic range compression. That's fine when listening to a single album from start to finish, but loudness variation between tracks in a playlist can be frustrating.</p>
+
+<p>It is well established that <a href="https://gizmodo.com/loudness-sounds-better-it-s-also-ruining-music-1694020336">louder songs sound better</a>, a cognitive bias everyone is susceptible to. This phenomenon has fueled a <a href="https://en.wikipedia.org/wiki/Loudness_war">loudness war</a> in the music industry, where tracks are increasingly compressed and limited to sound louder. As a result, listening to music across different eras can be jarring, as the loudness and perceived quality vary greatly.</p>
+
+<p>I was an audio engineer and DJ at my university student radio station. There, we had an audio post-processing rack to address this problem. Our post-processing rack used a multi-band compressor and limiter to normalize all audio broadcast from the station without noticeably coloring it. At home, I achieved the same results (in fact, better) using fantastic piece of software called <a href="https://www.thimeo.com/">DSP Stereo Tool</a>. But unfortunately, the Stereo Tool cannot be used on a smartphone, stereo, or in a car – only on a computer.</p>
+
+<p>Today, I decided to flip the script. I'm one of the few people left who prefers to purchase digital music files rather than stream them. Payouts to artists are better for purchases, purchases never disappear from my library during licensing disputes, and the audio quality on streaming sites is often lower than advertised. So until I get around to building my own loudness normalizing DSP hardware to process audio in real-time, why not pre-process my music library?</p>
+
+<hr />
+
+<h2>Music Library DSP Loudness Normalization</h2>
+
+<p>The script below uses <a href="https://www.thimeo.com/">DSP Stereo Tool</a> to apply broadcast grade loudness normalization to a full library of music. It expects directory called <code>Library</code>. It copies the full Library sub-directory structure into a new directory <code>Library-DSP</code>. Every MP3 file from the library is converted to WAV, processed, then converted back to MP3. All metadata from the original MP3 is mapped to the new one. Comment metadata is added to indicate the addition of DSP processing and the date processed. After processing all files, an integrity check identifies any failed conversions. This is important, because the script might take over 24 hours to run. Stereo Tool is a high quality processing rack, not a fast one.</p>
+
+<p><strong>Requirements:</strong></p>
+
+<ul>
+<li>Stereo Tool software license</li>
+<li>command line version of Stereo Tool <a href="https://www.thimeo.com/stereo-tool/">available for download here</a></li>
+<li>stereo<em>tool</em>cmd_64 -k requires LICENSE KEY string, "&lt; &gt;" chars are required</li>
+<li>stereo<em>tool</em>cmd_64 -s requires a preset file with preconfigured DSP settings</li>
+</ul>
+
+<p>The script is technically lossy, and it targets MP3 files rather than FLAC. This is because my primary use case for the processed library is music playback on my phone, which doesn't have enough storage for a FLAC library. Feel free to change all instances of ".mp3" to ".flac" to adapt it.</p>
+
+<pre><code>#!/bin/bash
+
+# Create new root directory
+mkdir -p "Library-DSP"
+
+# Recreate directory structure
+find Library -type d -print0 | while IFS= read -r -d '' dir; do
+    # Replace "Library" with "Library-DSP" in the path
+    new_dir="${dir/Library/Library-DSP}"
+    mkdir -p "${new_dir}"
+done
+
+# Copy files while preserving structure
+find Library -type f -print0 | while IFS= read -r -d '' file; do
+    # Replace "Library" with "Library-DSP" in filepath for output file
+    out_file="${file/Library/Library-DSP}"
+
+    # Create temporary filenames for files used in processing steps
+    temp_file1="${out_file%.mp3}.wav"
+    temp_file2="${out_file%.mp3}-DSP.wav"
+    temp_file3="${out_file%.mp3}-temp1.mp3"
+
+    echo "-- Processing ${file} --"
+
+    # Convert MP3 to WAV, process WAV with DSP Stereo Tool, convert WAV to MP3 VBR 0
+    # - ffmpeg -nostdin flag required to prevent user prompts from breaking the script
+    # - stereo_tool_cmd_64 -k requires LICENSE KEY string, "&lt; &gt;" chars are required
+    # - stereo_tool_cmd_64 -s requires a preset file with preconfigured DSP settings
+    # - only output error messages
+    ffmpeg -nostdin -loglevel level+error -hide_banner -nostats -i "${file}" -acodec pcm_s16le -ar 44100 "${temp_file1}"
+    ./stereo_tool_cmd_64 -q -k "&lt;LICENSE-KEY&gt;" -s Default.sts "${temp_file1}" "${temp_file2}" | grep -i "error"
+    ffmpeg -nostdin -loglevel level+error -hide_banner -nostats -i "${temp_file2}" -q:a 0 "${temp_file3}"
+
+    # Copy metadata from old MP3 to new MP3, set Comment metadata to show date processed
+    ffmpeg -nostdin -loglevel level+error -hide_banner -nostats \
+    -i "${file}" -i "${temp_file3}" \
+    -map_metadata 0 -map 1:a -map 0:v \
+    -metadata comment="DSP on $(date +%F)" \
+    -id3v2_version 3 -write_id3v1 1 -c copy "${out_file}"
+
+
+    rm "${temp_file1}"
+    rm "${temp_file2}"
+    rm "${temp_file3}"
+
+done
+
+# Check for missing files in Library-DSP (e.g. failed conversions)
+echo
+echo "---------------------"
+echo "-- Integrity Check --"
+echo "---------------------"
+echo
+rsync -r --dry-run --itemize-changes --ignore-existing Library/ Library-DSP/
+</code></pre>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Software</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

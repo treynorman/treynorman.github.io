@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>SimpleSeq MIDI Sequencer | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>SimpleSeq MIDI Sequencer</h1>
+
+<h4>August 7, 2011</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>SimpleSeq is a MIDI sequencer designed to be used as an instrument or drum machine. It can trigger notes and sounds on a synthesizer, VST plug-in, or any sound generating device that supports the MIDI protocol.</p>
+
+<p><strong>Time Invested</strong>: 3 weeks <br />
+<strong>Cost</strong>: $15 <br />
+<strong>Features</strong>:  </p>
+
+<ul>
+<li>Two-note polyphony</li>
+<li>Velocity control for each note</li>
+<li>Tempo control</li>
+<li>Pitch shifting</li>
+<li>8 and 16-step sequencing</li>
+<li>8 assignable MIDI CC controls</li>
+</ul>
+
+<hr />
+
+<h2>Video</h2>
+
+<article class="video-container"><iframe class="video" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" src="https://www.youtube.com/embed/PCJX-Pf_M4Q"></iframe></article>
+
+<hr />
+
+<h2>Details</h2>
+
+<p>This project is based off of <a href="http://www.roebbeling.de/wordpress/?p=85">Michael Roebbeling's SimplenZAR</a>, which I modified and made my own. Below is a list of changes I made and features I added.</p>
+
+<p>For the circuit, I...</p>
+
+<ul>
+<li>Added a second button for navigation <br />
+<em>- [left]-[enter]-[right] instead of [select]-[enter]</em></li>
+<li>Embedded the microcontroller and power supply into the circuit</li>
+<li>Used brighter LEDs with 220 Ohm current-limiting resistors</li>
+</ul>
+
+<p>For the firmware, I...</p>
+
+<ul>
+<li>Rewrote the "loop" section of the code, so the device is constantly checking for user input (every 10ms), not just when notes are played <br />
+<em>- the original device would "freeze" in between every note, which became a major problem at slow tempos</em> <br />
+<em>- from what I now understand, what I did was essentially event-driven programming</em></li>
+<li>Added the ability to navigate forward and backward through steps and menus</li>
+<li>Added the ability to play two notes simultaneously (aka. two-note polyphony)</li>
+<li>Added the ability to store presets in EEPROM (three total)</li>
+<li>Added the ability to control eight <a href="https://www.midi.org/specifications/item/table-3-control-change-messages-data-bytes-2">MIDI CC functions</a> (eg. filter cutoff frequency, resonance, portamento, etc.)</li>
+<li>Added the ability to mute all notes <br />
+<em>- helpful when assigning MIDI CC functions in Ableton, etc.</em></li>
+<li>Changed the way tempo is set (using BPM, rather than milliseconds of delay), and constrained the range from 60 to 300 BPM</li>
+<li>Changed the way new notes start when added to a sequence <br />
+<em>- repeats the previous note, instead of always playing a C</em> <br />
+<em>- this keeps the user from hearing a wrong note when C is not in-key</em></li>
+<li>Simplified parts of the original code</li>
+</ul>
+
+<p>The sequencer is still breadboarded and looks pretty ugly ever since I embedded the microcontroller, but it works just fine. You can find the source code and a hand-drawn schematic of the circuit below.</p>
+
+<hr />
+
+<h2>Gallery</h2>
+
+<article id="gallery"
+    <span class="slide"><a href="../projects/simpleseq/gallery01.jpg" class="gallery-link"><img src="../projects/simpleseq/gallery01.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/simpleseq/gallery02.jpg" class="gallery-link"><img src="../projects/simpleseq/gallery02.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/simpleseq/gallery03.jpg" class="gallery-link"><img src="../projects/simpleseq/gallery03.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/simpleseq/schematic.jpg" class="gallery-link"><img src="../projects/simpleseq/schematic.jpg" alt="Caption." /></a></span>
+</article>
+
+<hr />
+
+<h2>Download</h2>
+
+<p><strong>Source Code:</strong></p>
+
+<p><a href="https://pastebin.com/Dg9SPRMc" class="button primary icon solid fa-download" download="">Download</a>
+
+<p><strong>Schematic:</strong></p>
+
+<p><a href="simpleseq/schematic.jpg" class="button primary icon solid fa-download" download="">Download</a>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Software, Hardware</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

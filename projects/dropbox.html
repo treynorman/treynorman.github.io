@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>Embedded Linux Dropbox | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>Embedded Linux Dropbox</h1>
+
+<h4>July 3, 2013</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>A private <a href="https://www.dropbox.com/">Dropbox</a> alternative with no subscription fees or reliance on the cloud. It runs an internet-connected embedded Linux server and offers as much storage as you plug into it. Turn your old hard drives into personal cloud storage!</p>
+
+<p><strong>Time Invested</strong>: 2 days <br />
+<strong>Cost (BeagleBone Black)</strong>: Free from trade show ($55 new) <br />
+<strong>Cost (Hard Drive)</strong>: Collecting dust ($120 new) <br />
+<strong>Features</strong>:  </p>
+
+<ul>
+<li>Personal cloud storage</li>
+<li>File sharing and sync</li>
+<li>Document editor</li>
+<li>Media player</li>
+</ul>
+
+<hr />
+
+<h2>Gallery</h2>
+
+<article id="gallery"
+    <span class="slide"><a href="../projects/dropbox/gallery01.jpg" class="gallery-link"><img src="../projects/dropbox/gallery01.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/dropbox/gallery02.jpg" class="gallery-link"><img src="../projects/dropbox/gallery02.jpg" alt="Caption." /></a></span>
+</article>
+
+<hr />
+
+<h2>Details</h2>
+
+<p>Despite ever increasing storage capacity, cloud storage remains prohibitively expensive for large amounts of data. The price to store a lifetime of accumulated photos and videos in the cloud, say 1-2 TB, is about the same as buying a new 2 TB hard drive every year. That’s more than a little steep considering that hard drives tend to last me 5-7 years and last 3 years in data centers. Moreover, the rise of single-board computers has made it dirt cheap to set up your own web server.</p>
+
+<p>Solution: Build a low power, embedded Linux dropbox!</p>
+
+<p><a href="https://owncloud.org/">ownCloud</a> is an open source cloud storage solution. It’s well designed, regularly updated, and most importantly free. Sure, setting up an FTP server technically qualifies as building a dropbox, but it lacks nearly all of the features that make commercial services like <a href="https://www.dropbox.com/">Dropbox</a> so great. If you want a web interface, a built-in document editor, a media player, and the ability to share files with others using publicly accessible links, ownCloud is the way to go. It's a true Dropbox replacement with even more features than its expensive counterpart.</p>
+
+<p>A single-board computer and an external hard drive are all the hardware you need to make your own cheap, high capacity version of Dropbox. I used a <a href="https://beagleboard.org/black/">BeagleBone Black</a> that I picked up for free at a trade show and an old 2 TB hard drive. The steps below detail my full procedure. Feel free to follow them and liberate yourself from expensive cloud storage services. Just be sure to back up your data!</p>
+
+<hr />
+
+<h2>Part One</h2>
+
+<p>Download and install Angstrom Linux on the BeagleBone Black.</p>
+
+<p>To get started, download the latest image from <a href="http://beagleboard.org/latest-images/">beagleboard.org</a>. I chose the eMMC version which flashes the OS to the built-in eMMC memory rather than running it off the SD card like a Raspberry Pi. The BeagleBone's eMMC memory is more robust than the flash memory inside a typical SD card and will last longer than an SD card after thousands of read/write cycles. If you're running a server that's constantly caching data and logging stuff, eMMC is the way to go.</p>
+
+<p>Extract the Angstrom Linux image you downloaded using a tool like <a href="https://www.7-zip.org/download.html">7-Zip</a> and write the image to a microSD card 4 GB or larger. Below is the procedure I used to write the image to my microSD card. This procedure can be followed by all Linux users.</p>
+
+<p>First, find the microSD card block device path on your computer using <code>lsblk</code>. You should be able to identify your card by its size. Storage devices are enumerated by disk with each partition listed under the disk as branch. We're interested in the disk itself, not the partitions. My 4 GB microSD card was enumerated under the name "sdd" corresponding to the path "/dev/sdd".</p>
+
+<pre><code>NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+loop0    7:0    0   1.1G  1 loop /lib/live/mount/rootfs/filesystem.squashfs
+sda      8:0    0 233.8G  0 disk 
+├─sda1   8:1    0   200M  0 part 
+├─sda2   8:2    0  55.9G  0 part 
+├─sda3   8:3    0   128M  0 part 
+├─sda4   8:4    0  55.9G  0 part 
+└─sda5   8:5    0 121.6G  0 part 
+sdb      8:16   1  14.5G  0 disk 
+├─sdb1   8:17   1     8G  0 part /lib/live/mount/medium
+└─sdb2   8:18   1   6.5G  0 part 
+sdd      8:48   1   3.8G  0 disk 
+└─sdd1   8:49   1   3.8G  0 part
+</code></pre>
+
+<p>Unmount the microSD card, then write the Angstrom Linux image to it using the <code>dd</code> command. "if=" the location of the Linux image, and "of=" the device path for your microSD card. <strong>Be sure you specify the right device path.</strong> If you accidentally point this command to the wrong drive on your computer, it will overwrite the first 3.66 GB of data, destroy the partition table, and make the rest of the data inaccessible.</p>
+
+<pre><code>sudo dd bs=1m if=BBB-eMMC-flasher-2013.05.08.img of=/dev/sdd
+</code></pre>
+
+<p>Windows users can write the Linux image to the microSD card using the open source utility <a href="https://unetbootin.github.io/">UNetbootin</a>. Mac OS users can use the same <code>dd</code> command specified above after finding the device path with the command <code>df -h</code>.</p>
+
+<p>Next, flash the Angstrom Linux image to the BeagleBone Black. With the device unplugged, insert the microSD card and hold down the "User Button" just above the microSD slot. Apply power to the device and keep holding the "User Button" until all four blue LED's next to the Ethernet port are illuminated. Release the button and wait while the LED's blink erratically. The eMMC is being flashed. This process will take 30 minutes or more. When the flashing process is complete, the device will restart and the four LED's will remain lit. Power off the device and remove the microSD card.</p>
+
+<hr />
+
+<h2>Part Two</h2>
+
+<p>Plug in an external hard drive and configure the OS to mount it automatically on startup.</p>
+
+<p>Before you can play with your BeagleBone Black, make sure it's connected to your network via Ethernet and connected to your external hard drive. Power on the device. The device is accessible via SSH under the network name <code>beaglebone.local</code>. The default username is <code>root</code> with no default password (just press Enter). On Linux and Mac OS, open a terminal window and type this command to remotely access the BeagleBone:</p>
+
+<pre><code>ssh root@beaglebone.local
+</code></pre>
+
+<p>Windows users can use <a href="https://putty.org/">PuTTY</a> for SSH access. You'll see this prompt when you've connected to the BeagleBone Black successfully:</p>
+
+<pre><code>root@beaglebone:~#
+</code></pre>
+
+<p>To ensure that your external hard drive mounts automatically each time you reboot your BeagleBone Black, you'll need to create an fstab entry. This is a three step process composed of (1) getting the UUID of your external hard drive, (2) making a directory to be used as a mount point, and (3) telling fstab to mount your hard drive to that directory using its UUID.</p>
+
+<p>Step 1: Get the UUID of your external hard drive with the command <code>ls -l /dev/disk/by-uuid</code>. If the SD card is removed and there's only one hard drive connected (with a single partition), the hard drive will be the only disk with a path that doesn't begin with "../../mmcblk". In my case, it's "../../sda1" with the corresponding UUID "791768c2-9b12-4057-a378-894505f38879".</p>
+
+<pre><code>ls -l /dev/disk/by-uuid
+total 0
+lrwxrwxrwx 1 root root 15 Jan  1 00:00 5147-0D08 -&gt; ../../mmcblk0p1
+lrwxrwxrwx 1 root root 10 Jan  1 00:00 791768c2-9b12-4057-a378-894505f38879 -&gt; ../../sda1
+lrwxrwxrwx 1 root root 15 Jan  1 00:00 d75c6e2a-9c9c-4b4b-b5f9-c98d32ff1b4e -&gt; ../../mmcblk0p2
+</code></pre>
+
+<p>Step 2: Make a directory to mount your external hard drive to. I'll call mine "Storage".</p>
+
+<pre><code>mkdir /media/Storage
+</code></pre>
+
+<p>Step 3: Tell fstab to mount your hard drive to that directory using its UUID. We'll do this using the "nano" text editing utility <code>nano /etc/fstab</code>. Navigate to the end of the file, then add the following line <code>UUID=[UUID from Step 1] /media/Storage auto rw,user,auto 0 0</code>. Press Ctrl+X to exit, Y to save changes, and Enter to overwrite the file. Your fstab configuration should look similar to the one below.</p>
+
+<pre><code>nano /etc/fstab
+
+rootfs               /                    auto       defaults              1  1
+proc                 /proc                proc       defaults              0  0
+devpts               /dev/pts             devpts     mode=0620,gid=5       0  0
+tmpfs                /tmp                 tmpfs      defaults              0  0
+UUID=791768c2-9b12-4057-a378-894505f38879  /media/Storage  auto  rw,user,auto  0  0
+</code></pre>
+
+<p>Reboot your BeagleBone Black with the <code>reboot</code> command. Once it's back up and running, SSH into it and check that your drive is mounted with the <code>ls</code> command as shown below.</p>
+
+<pre><code>ssh root@beaglebone.local
+root@beaglebone.local's password:
+
+ls /media/Storage/
+Documents  Photos  Videos
+</code></pre>
+
+<hr />
+
+<h2>Part Three</h2>
+
+<p>Install and configure the web server and PHP.</p>
+
+<p>To run a web server on the BeagleBone Black we first need to disable the preinstalled "bonescript" service with the <code>systemctl disable</code> command. The "bonescript" service uses port 80 – the standard HTTP port – which we need for our own purposes. There are a few other services we don't need, so we'll disable them as well to free up resources. A reboot will ensure that everything is cleaned up. Below is a full list of commands to run.</p>
+
+<pre><code>systemctl disable bonescript.service
+systemctl disable bonescript.socket
+systemctl disable bonescript-autorun.service
+systemctl disable cloud9.service
+systemctl disable gdm.service
+systemctl disable mpd.service
+reboot
+</code></pre>
+
+<p>Reconnect to the BeagleBone Black through SSH. Now use the <code>opkg update</code> command to update the list of available packages. After updating, use <code>opkg install lighttpd lighttpd-module-fastcgi</code> to install the Lighttpd web server.</p>
+
+<pre><code>opkg update
+opkg install lighttpd lighttpd-module-fastcgi
+</code></pre>
+
+<p>Check that the web server is up and running. Open a web browser on your computer and navigate to the URL "beaglebone.local". You should see a message claiming, "It works!"</p>
+
+<pre><code>/***********************/
+/*   beaglbone.local   */
+/***********************/
+
+It works!
+</code></pre>
+
+<p>Now use <code>opkg install php php-cgi php-cli</code> to install PHP.</p>
+
+<pre><code>opkg install php php-cgi php-cli
+
+</code></pre>
+
+<p>Configure Lighttpd to use PHP. We'll do this by editing the Lighttpd configuration file located at "/etc/lighttpd.conf" using <code>nano /etc/lighttpd.conf</code>. Uncomment the line "mod_fastcgi" to enable it. Don't close the text editor.</p>
+
+<pre><code>nano /etc/lighttpd.conf
+
+# lighttpd configuration file
+#
+# use it as a base for lighttpd 1.0.0 and above
+#
+# $Id: lighttpd.conf,v 1.7 2004/11/03 22:26:05 weigon Exp $
+
+############ Options you really have to take care of ####################
+
+## modules to load
+# at least mod_access and mod_accesslog should be loaded
+# all other module should only be loaded if really neccesary
+# - saves some time
+# - saves memory
+server.modules              = (
+#                               "mod_rewrite",
+#                               "mod_redirect",
+#                               "mod_alias",
+                                "mod_access",
+#                               "mod_cml",
+#                               "mod_trigger_b4_dl",
+#                               "mod_auth",
+#                               "mod_status",
+#                               "mod_setenv",
+                                "mod_fastcgi",
+#                               "mod_proxy",
+#                               "mod_simple_vhost",
+...
+</code></pre>
+
+<p>Scroll down to the "fastcgi module" configuration and uncomment the entire section starting from the line "fastcgi.server". PHP is installed at the location "/usr/bin/php-cgi" by default. Set “bin-path” to point to that location instead of "/usr/local/bin/php". Your new configuration should look like the example below.</p>
+
+<pre><code>#### fastcgi module
+## read fastcgi.txt for more info
+## for PHP don't forget to set cgi.fix_pathinfo = 1 in the php.ini
+fastcgi.server             = ( ".php" =&gt;
+                               ( "localhost" =&gt;
+                                 (
+                                   "socket" =&gt; "/tmp/php-fastcgi.socket",
+                                   "bin-path" =&gt; "/usr/bin/php-cgi"
+                                 )
+                               )
+                             )
+</code></pre>
+
+<p>Press Ctrl+X to exit, Y to save changes, and Enter to overwrite the file. <code>reboot</code> the BeagleBone Black and log back in via SSH.</p>
+
+<hr />
+
+<h2>Part Four</h2>
+
+<p>Download and install ownCloud.</p>
+
+<p>There's no official ownCloud build for the BeagleBone Black, so we have to download the source code and unpack it ourselves. To get the source code, navigate to the <a href="https://owncloud.org/download/">ownCloud download page</a> on your computer. Scroll down to the Tarball section, right-click on "Download Tar", and copy the download link. In your BeagleBone Black SSH terminal window type the command <code>wget</code> and paste the link you copied.</p>
+
+<pre><code>wget http://download.owncloud.org/community/owncloud-5.0.7.tar.bz2
+</code></pre>
+
+<p>Unpack the source code tarball using the command <code>tar -xvjf [tarball] -C [target directory]</code>. The "-x" parameter extracts files from the tarball, "-v" lists the files as they're extracted (verbose), and "-j" uses bzip2 to unpack the tarball. "-f" must be followed by the filename of the tarball and "-C" is followed by the target directory.</p>
+
+<pre><code>tar -xvjf owncloud-5.0.7.tar.bz2 -C /www/pages
+</code></pre>
+
+<p>Create a symlink to your external hard drive in the newly created ownCloud "data" directory using <code>ln -s</code>. This link will be a shortcut to the data on your hard drive inside the dropbox.</p>
+
+<pre><code>root@beaglebone:/home/debian/link# ln -s /media/Storage /www/pages/owncloud/data/Storage
+</code></pre>
+
+<p>Change the owner of the ownCloud direcotry to "www-data" using the command <code>chown -R www-data:www-data /www/pages/owncloud</code>. The "-R" parameter ensures the changes propagate recursively through all files and subdirectories.</p>
+
+<pre><code>chown -R www-data:www-data /www/pages/owncloud
+</code></pre>
+
+<p>That's it! Go to the URL "beaglebone.local/owncloud" in your web browser to access your personal dropbox.</p>
+
+<hr />
+
+<h2>Part Five</h2>
+
+<p>Enable access from the internet.</p>
+
+<p>At this stage the ownCloud dropbox can only be accessed from the local network. To access it from the outside world, you'll need to set up port forwarding on your home router. The process varies for each manufacturer, but I'll give a general overview of the steps. First, get the hardware MAC address of the Ethernet adapter on your BeagleBone Black. You can find it with the command <code>ifconfig -a</code>. Ethernet adapters are denoted as "eth0", "eth1", and so on. In the example below, the MAC address is "2A:40:E0:F4:C5:2A".</p>
+
+<pre><code>eth0      Link encap:Ethernet  HWaddr 2A:40:E0:F4:C5:2A  
+          inet addr:192.168.1.80  Bcast:192.168.1.255 Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1492  Metric:1
+          RX packets:112 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:59 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:14645 (14.3 KiB)  TX bytes:11844 (11.5 KiB)
+
+lo        Link encap:Local Loopback  
+          LOOPBACK  MTU:16436  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)                    
+</code></pre>
+
+<p>Next, open a web browser and navigate to the URL of your router settings – commonly "192.168.1.1" or "10.10.10.1". If you've never logged in to change the default username and password, try one of common ones listed below.</p>
+
+<pre><code>Username: admin
+Password: admin
+
+Username: admin
+Password: password
+
+Username: admin
+Password: (blank)               
+</code></pre>
+
+<p>Once inside, look for a "Network Settings" button. Click it. Then find the page for setting a "Static IP Address". It may be under advanced settings. Create a static IP address for your BeagleBone Black using the MAC address you found earlier. The IP address can be anything as long as it's easy to remember. I like "192.168.1.80" because the server runs on Port 80. You may need to reboot your router for the settings to take effect.</p>
+
+<p>After setting a static IP address, look for the "Firewall" settings button and find the page for setting up "Port Forwarding". Create a rule to forward Port 80 to your BeagleBone Black's static IP address. Your dropbox is now accessible from the internet. But, to find it you'll need to know the IP address your internet service provider (ISP) assigned your home network. That address should be listed on a network statistics page as your router's "Broadband IP Address" or similar.</p>
+
+<p>With your router's IP address, you can finally access your dropbox from anywhere in the world! Just type the URL "[Your Router's IP Address]/owncloud" into a web browser.</p>
+
+<p>However, this solution isn't ideal. Nobody wants to memorize the IP address for their home network, and more annoyingly, ISP's change that address constantly without telling you. Most make you pay to have a static IP address. There's a workaround.</p>
+
+<p>Modern routers support a service called Dynamic DNS which keeps track of the IP address assigned by your ISP. If you own your own domain name, Dynamic DNS will automatically update the name server every time your IP address changes. Functionally, this means that you can access your dropbox using "your-own-personal-domain-name.org/owncloud" and forget about the ever changing IP address. A service called <a href="https://www.noip.com/">No-IP</a> lets you create a personal domain name for free and link it to your home network through Dynamic DNS. Check your router user manual for details about setting up Dynamic DNS as the process varies widely.</p>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Hardware, Software</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>Personal AI Bot for SMS, iMessage, WhatsApp, Signal, etc. | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>Personal AI Bot for SMS, iMessage, WhatsApp, Signal, etc.</h1>
+
+<h4>May 24, 2025</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>Open source AI chat integration into SMS, iMessage, WhatsApp, Signal, Facebook Messenger, Instagram, and Slack using Matrix, chat bridges, Baibot, and llama.cpp.</p>
+
+<hr />
+
+<h2>Gallery</h2>
+
+<article id="gallery"
+    <span class="slide"><a href="../projects/ai-matrix-bot/gallery01.jpg" class="gallery-link"><img src="../projects/ai-matrix-bot/gallery01.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/ai-matrix-bot/gallery02.jpg" class="gallery-link"><img src="../projects/ai-matrix-bot/gallery02.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/ai-matrix-bot/gallery03.jpg" class="gallery-link"><img src="../projects/ai-matrix-bot/gallery03.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/ai-matrix-bot/gallery04.jpg" class="gallery-link"><img src="../projects/ai-matrix-bot/gallery04.jpg" alt="Caption." /></a></span>
+</article>
+
+<hr />
+
+<h2>Details</h2>
+
+<p>I recently set up a Matrix server to consolidate all my chat apps into one centralized platform. My aim was to power a minimalist e-ink smartphone with access to social media chats, but no social media doom-scrolling. The result exceeded my expectations. I’m more focused, never miss a message, and chatting has become faster and more efficient. I use the solution daily across all of my devices.</p>
+
+<p>But what about adding open source, locally hosted AI to the mix? Sure, there are plenty of AI chat apps capable of communicating with my <a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a> server. But in the interest of consolidation, why install one?</p>
+
+<p>Nowadays, it's safe to assume that any low hanging fruit in the AI space already exists. My use case was no exception. <a href="https://github.com/etkecc/baibot/tree/main">Baibot</a>, an AI chatbot for Matrix, more than met my needs.</p>
+
+<p>The real motivator for me to configure the bot was the realization this bot would not simply allow me to talk to my computer more easily. My consolidated chat setup opens the door to allowing my friends and family to use my local AI tools as well - without the need to download any software. Anyone chatting with me can have secure access, irrespective of the chat app they use. I can also build my own custom AI agents, to say, fetch the latest news and deliver it in the positive, upbeat style of Bob Ross.</p>
+
+<p>This guide covers Baibot installation and setup for text chat with a local LLM.</p>
+
+<hr />
+
+<h2>Baibot installation &amp; config</h2>
+
+<p>First, create a user and password for the bot on your Matrix server. By default, Baibot assumes public user registration is enabled. That probably isn't the case if you host a private instance. If you use Synapse with registration disabled, create a Baibot user manually via <code>register_new_matrix_user</code>. Use the command below, but change <code>&lt;synapse-container-name&gt;</code> and <code>&lt;password&gt;</code> to your suit your needs.</p>
+
+<pre><code>docker exec -it &lt;synapse-container-name&gt; register_new_matrix_user http://localhost:8008 -u aibot -p &lt;password&gt; -c /data/homeserver.yaml
+</code></pre>
+
+<p>Next, create a directory for Baibot's configuration file and data:</p>
+
+<pre><code>mkdir -p /your-data-dir/baibot/data
+</code></pre>
+
+<p>Download the <a href="https://github.com/etkecc/baibot/blob/main/etc/app/config.yml.dist">configuration template from Baibot's GitHub</a> and save it as a YAML file in the directory you created:</p>
+
+<pre><code>wget https://raw.githubusercontent.com/etkecc/baibot/refs/heads/main/etc/app/config.yml.dist -O /your-data-dir/baibot/config.yml
+</code></pre>
+
+<p>Edit the config file <code>/your-data-dir/baibot/config.yml</code> according to the official documentation.</p>
+
+<p>Some required and/or useful options:</p>
+
+<ul>
+<li>homeserver &gt; server_name &gt; <code>[your-matrix-domain]</code></li>
+<li>homeserver &gt; url &gt; <code>http://[your-server-IP]:8008</code></li>
+<li>user &gt; mxid_localpart &gt; <code>aibot</code> (Matrix user registered for the bot)</li>
+<li>user &gt; password &gt; <code>[your-aibot-password]</code> (password for the aibot user)</li>
+<li>user &gt; name &gt; <code>AI Bot</code> (bot's display name in Matrix)</li>
+<li>user &gt; encryption &gt; recovery_passphrase &gt; <code>long-and-secure-passphrase</code> (generate one)</li>
+<li>command_prefix &gt; <code>!ai</code> (easier to remember than the default)</li>
+<li>access &gt; admin_patterns &gt; <code>"@[your-admin-user]:[your-matrix-domain]"</code></li>
+<li>persistence &gt; data<em>dir</em>path &gt; <code>/data</code> (just to be safe)</li>
+<li>persistence &gt; session<em>encryption</em>key &gt; (generate one per the instructions in config.yml)</li>
+<li>persistence &gt; config<em>encryption</em>key &gt; (generate one per the instructions in config.yml)</li>
+<li>agents &gt; static_definitions &gt; <strong>(see below)</strong></li>
+<li>initial<em>global</em>config &gt; handler &gt; catch_all &gt; <code>static/openai-compatible</code></li>
+<li>initial<em>global</em>config &gt; handler &gt; text_generation &gt; <code>static/openai-compatible</code></li>
+<li>initial<em>global</em>config &gt; user_patterns &gt; <code>"@*:[your-matrix-domain]"</code></li>
+</ul>
+
+<p><strong>Agents &gt; static_definitions</strong> is where the magic happens. Configure a default AI agent for Baibot. The example below configures an agent for text generation using a local llama.cpp server. Change <code>[your-llama.cpp-endpoint]</code>, <code>aip_key</code> (if applicable),<code>temperature</code>, and <code>max_context_tokens</code> to match your setup. <code>model_id</code> doesn't matter for llama.cpp, because it can't swap models. Consider using a <a href="https://github.com/mostlygeek/llama-swap">llama-swap</a> proxy to support multiple models with automatic swapping. Have fun with the system prompt!</p>
+
+<pre><code>agents:
+  static_definitions:
+  - id: openai-compatible
+      provider: openai-compatible
+      config:
+        base_url: "http://[your-llama.cpp-endpoint]/v1"
+        api_key: null
+        text_generation:
+          model_id: "default"
+          prompt: "You are a bot named {{ baibot_name }}. You are very excitable, completely unhinged, AND YOU SPEAK IN ALL CAPS LIKE THIS. You are brief in your replies, covering all important details succinctly. Avoid using emojis. /no_think"
+          temperature: 1.0
+          max_response_tokens: 4096
+          max_context_tokens: 18000
+</code></pre>
+
+<p>Use the <strong>Docker compose</strong> below to run Baibot. Change <code>[user-id]:[group-id]</code> to your Docker user and <code>/your-data-dir/baibot</code> to the directory you created for your Baibot data:</p>
+
+<pre><code>matrix-baibot:
+  container_name: matrix-baibot
+  image: ghcr.io/etkecc/baibot:latest
+  user: 1000:1000
+  cap_drop:
+    - ALL
+  environment:
+    - BAIBOT_PERSISTENCE_DATA_DIR_PATH=/data
+  volumes:
+    - /your-data-dir/baibot/data:/data
+    - /your-data-dir/baibot/config.yml:/app/config.yml:ro
+</code></pre>
+
+<hr />
+
+<h2>Baibot usage</h2>
+
+<p>Message AI Bot directly in Matrix by starting a chat with <code>@aibot:[your-matrix-domain]</code>.</p>
+
+<p>To add the bot to chats on other platforms (e.g. SMS, iMessage, WhatsApp, Signal, Facebook Messenger, Instagram chats, and Slack), first ensure each bridge is configured with relay mode enabled in <code>[example-bridge-data-dir]/config.yaml</code>:</p>
+
+<ul>
+<li>bridge &gt; relay &gt; enabled &gt; <code>true</code></li>
+</ul>
+
+<p>Set up a relay for your user inside each chat room, then invite AI Bot. AI Bot will use your account to reply. Your bridged chat user ID is probably something weird. Use the chat command <code>list-logins</code> to find it. You might also need to use <code>set-pl</code> to make yourself an admin for the chat room. Below are the chat commands I used to configure relays for each platform listed above:</p>
+
+<pre><code># Facebook/Instagram
+!meta list-logins
+!meta set-relay &lt;user-id&gt;
+
+# iMessage
+# (macOS bridge config.yaml requires a whitelist)
+# bridge &gt; relay &gt; whitelist &gt; ["*"]
+!im set-pl 100
+
+# Signal
+!signal list-logins
+!signal set-relay &lt;user-id&gt;
+
+# Slack
+!slack list-logins
+!slack set-relay
+
+# SMS (Google Messages)
+!gm set-pl 100
+!gm list-logins
+!gm set-relay &lt;user-id&gt;
+
+# WhatsApp
+!wa list-logins
+!wa set-relay &lt;probably-your-phone-number&gt;
+</code></pre>
+
+<p>Invite <code>@aibot:[your-matrix-domain]</code> to the bridged chat room once initial configuration is complete.</p>
+
+<p>Unleash the beast using the format below:</p>
+
+<pre><code>!ai Robot, don't be shy. Introduce yourself!
+</code></pre>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Notes, Software</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

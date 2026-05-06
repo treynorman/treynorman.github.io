@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>Install MediaMonkey on Linux with Wine | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>Install MediaMonkey on Linux with Wine</h1>
+
+<h4>March 4, 2024</h4>
+
+<p>This is a guide for installing the 64-bit version of MediaMonkey on Linux using Wine.</p>
+
+<p>MediaMonkey is widely considered to be the best tool for managing music collections. It's a media player built to expand upon the legendary tool WinAmp. MediaMonkey enables users to:</p>
+
+<ul>
+<li>Bulk edit and correct song title, artist, album, track number, genre, and  other metadata</li>
+<li>Write changes back to the original files, supporting all three MP3 metadata versions to ensure that your hard work and changes aren't ignored by music players that to pull information from one specific version</li>
+<li>Embed album art directly into music file metadata, so that it's always displayed when a song is played on another device or media player</li>
+<li>Automatically organize files in a music collection according to a user-defined format, like
+<ul>
+<li>Artist / Album / Track# - SongTitle</li>
+<li>Artist / Album [Year] / Track# - SongTitle</li>
+<li>Genre / Artist / Album / Track# - SongTitle</li>
+<li>Playlist Name / PlaylistPosition# - Artist - SongTitle</li>
+<li>...</li>
+</ul></li>
+<li>Use a wide collection of extensions to
+<ul>
+<li>Pull information from the internet like lyrics and album art</li>
+<li>Bulk rename files and metadata to, for instance, add a leading zero to track numbers since silly computers sort songs in the order 1, 10, 11, 2, 3, 4, ..., when there's no leading zero</li>
+<li>Run an internet radio server to stream your own internet radio station from inside MediaMonkey</li>
+<li>Use digital signal processing to process the audio and, for instance, normalize the loudness of all music played back with a compressor + limiter</li>
+</ul></li>
+</ul>
+
+<p>That sounds like an ad, but really it's a call to action for someone to build a modern tool with the same level of functionality. Since no such tools exist, running this old powerhouse using Wine is the best option. </p>
+
+<p>This tutorial targets MediaMonkey 3, because it has the largest number of community extensions available for enhanced functionality. <a href="https://www.mediamonkey.com/support/knowledge-base/mediamonkey-general/download-mediamonkey/">Download the final version of MediaMonkey 3 from the MediaMonkey website.</a></p>
+
+<hr />
+
+<h2>Install Wine</h2>
+
+<p>If missing, install <code>wine</code> and <code>winetricks</code> after adding the WineHQ repo:</p>
+
+<pre><code>sudo dpkg --add-architecture i386
+sudo mkdir -pm755 /etc/apt/keyrings
+sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/$(lsb_release -cs)/winehq-$(lsb_release -cs).sources
+sudo apt update
+sudo apt install --install-recommends winehq-stable
+</code></pre>
+
+<p>Run <code>winecfg</code> and select Windows 7 as the Windows Version for running applications in Wine:</p>
+
+<pre><code># Applications &gt; Windows Version &gt; Windows 7 &gt; Apply
+</code></pre>
+
+<p>Note: When wine breaks, the easy nuclear option is to purge every portion of it, including the default wine prefix:</p>
+
+<pre><code>sudo apt purge 'wine*'
+sudo apt autoremove --purge
+sudo rm -r ~/.wine
+</code></pre>
+
+<p>Then reinstall, maybe opting for an older stable version.</p>
+
+<hr />
+
+<h2>Configure Winetricks</h2>
+
+<p>Run <code>winetricks</code> to install supporting Windows components and libraries.</p>
+
+<ul>
+<li>Choose <strong>Select the default wine prefix</strong> </li>
+<li>Select <strong>Install a Windows DLL or component</strong> and add these components / libraries
+<ul>
+<li>ole32 (for RegExpReplace file renamer plugin)</li>
+<li>oleut32 (for RegExpReplace file renamer plugin) </li>
+<li>vb6run </li>
+<li>vcrun6</li>
+<li>vcrun6sp6</li>
+<li>wmp11</li>
+<li>wsh57</li>
+</ul></li>
+<li>Follow the prompts to complete installation</li>
+<li>Click <strong>Cancel</strong> after installation is complete</li>
+</ul>
+
+<hr />
+
+<h2>Install MediaMonkey</h2>
+
+<p>Open a terminal in the same directory as the MediaMonkey installer. Then, use wine to install MediaMonkey with support for 64-bit Windows architectures and follow the prompts:</p>
+
+<pre><code>WINEARCH=win64 wine MediaMonkey_3.2.6.1307.exe
+</code></pre>
+
+<p>I use the final version of MediaMonkey 3, because it has the largest number of community add-ons and scripts by a long shot. <a href="https://www.mediamonkey.com/support/knowledge-base/mediamonkey-general/download-mediamonkey/">You can download MediaMonkey_3.2.6.1307 from the official site using this link</a>. Later versions of MediaMonkey break extension compatibility.</p>
+
+<p>Follow the prompts to install MediaMonkey.</p>
+
+<hr />
+
+<h2>Configure MediaMonkey</h2>
+
+<p>You might be disappointed to learn that MediaMonkey won't play music after it's installed. Not a good look. This is because MediaMonkey's default sound output plug-in isn't supported by Wine and must be changed.</p>
+
+<p>Open MediaMonkey and navigate to <strong>Tools &gt; Options &gt; Output Plug-ins</strong></p>
+
+<p>Select <strong>waveOut output v2.0.2a</strong> and click <strong>Configure</strong></p>
+
+<p>Select the device <strong>PulseAudio</strong> (or your specific Linux version's audio driver). You may also disable volume controls inside of MediaMonkey since most Linux distros have their own volume mixer.</p>
+
+<p>Click <strong>OK</strong> in both settings windows to exit.</p>
+
+<hr />
+
+<h2>Optional: Keyboard shortcut to fully shut down MediaMonkey</h2>
+
+<p>Annoyingly, MediaMonkey will likely throw a memory error when you try to exit the application. The window will close, but the application will remain running in the background as a zombie process. The old process must be killed before MediaMonkey can be used again. To save time fiddling with the task manager, we can make a killswitch to force kill the app using a keyboard shortcut.</p>
+
+<p>First create a script in your user's PATH to make it easy to run from the terminal. On my machine, this means adding the script to the folder <code>~/.local/bin</code>:</p>
+
+<pre><code>nano ~/.local/bin/Kill-MM.sh
+</code></pre>
+
+<p>Paste the contents of the script below and save the file:</p>
+
+<pre><code>#!/bin/bash
+
+# List all processes, find processes that contain the string "MediaMonkey", extract the first PID
+PID=$(ps -aux | grep MediaMonkey | grep -oE '[0-9]+' | head -n 1)
+
+# Kill the process
+kill -9 ${PID}
+</code></pre>
+
+<p>Make the script executable:</p>
+
+<pre><code>chmod +x ~/.local/bin/Kill-MM.sh
+</code></pre>
+
+<p>Note: You can run <code>echo $PATH</code> to view a list of directories in your PATH and ensure that <code>~/.local/bin</code> is included. If it isn't, create the script inside a directory that is.</p>
+
+<p>For ease of use, it's also helpful to add a keyboard shortcut to run the script. I use the key combination <strong>Ctrl+Super+M</strong>. On my machine, a keyboard shortcut can be created by navigating to <strong>Settings &gt; Keyboard &gt; Application Shortcuts &gt; + Add</strong>.</p>
+
+<hr />
+
+<h2>Optional: Create application launcher for MediaMonkey (non-skinned)</h2>
+
+<p>Skinned versions of MediaMonkey look goofy compared to modern UI's. Follow the instructions below to create an application launcher for the non-skinned version of MediaMonkey.</p>
+
+<p>Create an app launcher for the non-skinned version of MediaMonkey:</p>
+
+<pre><code>nano MediaMonkeyNS.desktop
+</code></pre>
+
+<p>Paste the following as a template. Edit it to reference your home directory and MediaMonkey icon and save:</p>
+
+<pre><code>[Desktop Entry]
+Name=MediaMonkey (non-skinned)
+Type=Application
+Categories=Audio;
+Terminal=false
+StartupNotify=true
+Exec=env wine "/home/&lt;your-username&gt;/.wine/drive_c/Program Files (x86)/MediaMonkey/MediaMonkey (non-skinned).exe"
+Comment=It really whips the llama's ass
+Icon=AE5D_MediaMonkey.0
+</code></pre>
+
+<p>The tag <code>&lt;your-username&gt;</code> in the <code>Exec=</code> entry should be your Linux username.</p>
+
+<p><code>Categories=Audio;</code> will ensure that MediaMonkey is listed alongside other audio apps in the application menu. Otherwise, it gets buried inside three directories, Wine &gt; Programs &gt; MediaMonkey, and that's too much effort.</p>
+
+<p><code>Comment=It really whips the llama's ass</code> is a throwback to <a href="https://youtu.be/O32cH075LBQ?si=z293QsQSFnY6KI3m">WinAmp</a>. This is not strictly required, but encouraged.</p>
+
+<p><code>Icon=AE5D_MediaMonkey.0</code> almost certainly won't work for anyone other than me. Your icon reference can be copied from the standard MediaMonkey application launcher. Use this command to view it:</p>
+
+<pre><code>cat MediaMonkey.desktop
+</code></pre>
+
+<p>A custom icon can also be used by referencing the absolute path of a SVG or PNG file without quotes.</p>
+
+<p>Log out and log back in for these changes to take effect.</p>
+
+<hr />
+
+<p><em>Category: Notes, Software</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

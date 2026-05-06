@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>AI Docker Framework | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>AI Docker Framework</h1>
+
+<h4>April 29, 2023</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>Docker framework for running AI projects locally on any platform and easy-install project specific Dockerfiles with dependency issues are pre-patched. Ubuntu OS with NVIDIA CUDA support. Supports the ability run old versions of Python for compatibility with picky projects. A file browser and terminal are exposed as web apps.</p>
+
+<p><strong>Included Containers:</strong></p>
+
+<ul>
+<li>General AI Project Container</li>
+<li>TorToiSe TTS Fast Voice Cloning Container</li>
+<li>Stable Diffusion Web UI Image Generation Container</li>
+<li>Text Generation Web UI LLM Container</li>
+</ul>
+
+<hr />
+
+<h2>Gallery</h2>
+
+<article id="gallery"
+    <span class="slide"><a href="../projects/ai-docker-framework/gallery-01.jpg" class="gallery-link"><img src="../projects/ai-docker-framework/gallery-01.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/ai-docker-framework/gallery-02.jpg" class="gallery-link"><img src="../projects/ai-docker-framework/gallery-02.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/ai-docker-framework/gallery-03.jpg" class="gallery-link"><img src="../projects/ai-docker-framework/gallery-03.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/ai-docker-framework/gallery-04.jpg" class="gallery-link"><img src="../projects/ai-docker-framework/gallery-04.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/ai-docker-framework/gallery-05.jpg" class="gallery-link"><img src="../projects/ai-docker-framework/gallery-05.jpg" alt="Caption." /></a></span>
+</article>
+
+<hr />
+
+<h2>Details</h2>
+
+<p>After using only a laptop and personal server for many years, I decided to build a desktop computer for the first time in a decade. To minimize latency, I opted for a high-end CPU, the fastest available RAM, and dual SSD's configured in RAID 0 for double the throughput. AI was on my mind, so I bit the bullet and purchased an NVIDIA GeForce RTX 4090 GPU for AI workloads. </p>
+
+<p>Most AI projects are built on Ubuntu. I find Ubuntu to be bloated, so I opted for my own preferred Linux flavor, a lightweight installation of Ubuntu's upstream parent Debian. Even though Ubuntu is based on Debian, I chose to run AI projects in an Ubuntu Docker container to avoid any unexpected compatibility issues and keep the projects contained. Below is the general container framework I built for installing, testing, and running projects. Also included are pre-patched Dockerfiles I created for specific projects that interest me.</p>
+
+<p>These containers are not intended to be exposed directly to the outside web. I use them remotely though a <a href="https://www.wireguard.com/">WireGuard VPN</a>. If you want to expose them, follow best practices for security. At a minimum, change all default passwords, specify a Docker user with strict permissions, and consider adding an authentication service like <a href="https://goauthentik.io/">Authentik</a> or <a href="https://www.authelia.com/">Authelia</a>.</p>
+
+<hr />
+
+<h2>General AI Project Container Dockerfile &amp; Usage</h2>
+
+<p>This container is a blank slate for spinning up AI projects. It's the foundation for all project specific containers on this page. The container is built for both compatibility and usability. Want to install an old version of Python and experiment with <a href="https://github.com/openai/whisper">Open AI's Whisper</a> while lying in bed on your smartphone? Go for it!</p>
+
+<p><strong>Features:</strong></p>
+
+<ul>
+<li><a href="https://github.com/deadsnakes">deadsnakes</a> to install old Python versions (edit Dockerfile to preload one)</li>
+<li><a href="https://github.com/shellinabox/shellinabox">Shell In A Box</a> to execute commands via web browser</li>
+<li><a href="https://filebrowser.org/features">File Browser</a> to browse files via web browser</li>
+<li>git, curl, and nano support (absent from NVIDIA Ubuntu images)</li>
+</ul>
+
+<p><strong>General AI Project Container Dockerfile:</strong></p>
+
+<pre><code>FROM nvidia/cuda:12.0.0-devel-ubuntu22.04
+
+# Optional: Change this to your local timezone
+ENV TZ=America/Chicago
+
+RUN apt update -y
+RUN apt install software-properties-common -y
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt update -y
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &amp;&amp; echo $TZ &gt; /etc/timezone
+RUN apt install tzdata -y
+
+# Optional: Install an old version of Python from deadsnakes, e.g. for Whisper AI
+# RUN apt install python3.10 -y
+RUN apt install python3 -y
+RUN apt install python3-pip -y
+
+RUN apt install curl -y
+RUN apt install git -y
+RUN apt install nano -y
+RUN apt install systemd systemd-sysv dbus dbus-user-session -y
+
+# Install ShellInABox
+RUN apt install openssl shellinabox -y
+RUN apt clean -y
+
+# Install FileBroswer
+WORKDIR /root/
+RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+
+# Create startup script to run FileBrowser
+WORKDIR /root/
+RUN echo '#!/bin/bash\n\n\
+# Run File Browser in background &amp; listen on 0.0.0.0:2121\n\
+FB_ROOT=/root/ FB_DATABASE=$FB_ROOT/filebrowser.db FB_BASEURL=/filebrowser/ FB_ADDRESS=0.0.0.0 FB_PORT=2121 /usr/local/bin/filebrowser' &gt; /root/startup.sh
+RUN chmod +x /root/startup.sh
+
+# Create a system.d service to run /root/startup.sh at boot
+RUN echo '[Unit]\n\
+Description=Startup Script\n\
+After=network.target\n\n\
+[Service]\n\
+WorkingDirectory=/root\n\
+ExecStart=/root/startup.sh\n\
+User=root\n\
+Restart=on-failure\n\
+TimeoutSec=30\n\n\
+[Install]\n\
+WantedBy=multi-user.target' &gt; /etc/systemd/system/startup.service
+RUN systemctl enable startup.service
+
+# AI welcome terminal decoration
+RUN echo 'echo' &gt;&gt; /root/.bashrc
+RUN echo 'echo -e "        _______________________\n       |                       |\n       |      ___________      |\n       |     |  O     O  |     |\n       |     |    ___    |     |\n       |     |___________|     |\n       |_______________________|\n               |||||||||\n   }---|_______________________|---{\n       |      [=========]      |\n       |_______________________|\n        ||     ||     ||     ||\n     ___||_____||_____||_____||____\n    |___|____|______|____|_____|___|\n    |______________________________|\n     [___][___][___][___][___][___]\n     [___][___][___][___][___][___]\n"' &gt;&gt; /root/.bashrc
+
+ENTRYPOINT ["/sbin/init"]
+RUN echo 'root:password' | chpasswd
+
+# Expose ports for Filebrowser, SellInABox, and Gradio
+EXPOSE 2121
+EXPOSE 4200
+EXPOSE 7860
+</code></pre>
+
+<p>Save the above as a <code>Dockerfile</code>, then build and run the container:</p>
+
+<pre><code>docker build -t local/ai-test .
+docker run --runtime=nvidia --privileged --cap-add=ALL --name ai-test -p 2121:2121 -p 2222:4200 -p 7860:7860 -d local/ai-test
+</code></pre>
+
+<p><strong>Ports for each service:</strong>  </p>
+
+<ul>
+<li>7860 - Gradio default port</li>
+<li>2121 - File Browser (user: admin, password: admin)</li>
+<li>2222 - ShellInABox (requires https, user: root, password: password)</li>
+</ul>
+
+<hr />
+
+<h2>TorToiSe TTS Fast Voice Cloning Dockerfile &amp; Usage</h2>
+
+<p>TorToiSe TTS is a multi-voice TTS system trained with an emphasis on quality at the expense of speed. TorToiSe TTS Fast boosts the performance and speed of TorToiSe, without modifying the base models. Inference runs 5-10x faster with added support for BigVGAN, dpm++2m sampling, and CPU offloading.</p>
+
+<p><strong>Requirements for voice samples:</strong></p>
+
+<ul>
+<li>Clip length target is ~10 seconds</li>
+<li>Use 3-5 clips minimum</li>
+<li>High quality recordings with minimal background noise as the model can sometimes match to room conditions or mic nuances rather than the voice</li>
+<li>Signed 16-bit PCM WAV file format</li>
+<li>Sample rate 20500 Hz (e.g. single mono channel of 44.1 kHz stereo recording)</li>
+</ul>
+
+<p>Command to auto-slice recordings into 10-second clips encoded for use with TorToiSe:</p>
+
+<pre><code>ffmpeg -i "input.wav" -f segment -segment_time 10 -c:a pcm_s16le -ar 22050 -ac 1 -y output/${input[@]/%.ogg/_%03d.wav}
+</code></pre>
+
+<p>Below is a TorToiSe TTS Fast Dockerfile, which includes fixes for dependency issues and runs the included Streamlit app at startup. You may need to change the PyTorch CUDA version to match your setup by editing the line <code>RUN pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cu118</code>. Change the value of <code>cu118</code> (CUDA 11.8).</p>
+
+<pre><code>FROM nvidia/cuda:12.0.0-devel-ubuntu22.04
+
+# Optional: Change this to your local timezone
+ENV TZ=America/Chicago
+
+RUN apt update -y
+RUN apt install software-properties-common -y
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt update -y
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &amp;&amp; echo $TZ &gt; /etc/timezone
+RUN apt install tzdata -y
+
+# Optional: Install an old version of Python from deadsnakes, e.g. for Whisper AI
+#RUN apt install python3.10 -y
+RUN apt install python3 -y
+RUN apt install python3-pip -y
+
+RUN apt install curl -y
+RUN apt install git -y
+RUN apt install nano -y
+RUN apt install systemd systemd-sysv dbus dbus-user-session -y
+
+# Install ShellInABox
+RUN apt install openssl shellinabox -y
+RUN apt clean -y
+
+# Install FileBroswer
+WORKDIR /root
+RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+
+# Install TorToiSe TTS Fast
+RUN git clone https://github.com/152334H/tortoise-tts-fast
+WORKDIR cd /root/tortoise-tts-fast
+RUN pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cu128
+RUN python3 -m pip install -e /root/tortoise-tts-fast
+RUN pip3 install git+https://github.com/152334H/BigVGAN.git
+RUN pip3 install streamlit
+
+# Create startup script to run FileBrowser and Gradio app
+WORKDIR /root/
+RUN echo '#!/bin/bash\n\n\
+# Run File Browser in background &amp; listen on 0.0.0.0:2121\n\
+FB_ROOT=/root/ FB_DATABASE=$FB_ROOT/filebrowser.db FB_BASEURL=/filebrowser/ FB_ADDRESS=0.0.0.0 FB_PORT=2121 /usr/local/bin/filebrowser &amp; exec &lt;/dev/null &gt;/dev/null 2&gt;/dev/null\n\n\
+# Run Streamlit app on Gradio default port\n\
+streamlit run /root/tortoise-tts-fast/scripts/app.py --server.port 7860' &gt; /root/startup.sh
+RUN chmod +x /root/startup.sh
+
+# Create a system.d service to run /root/startup.sh at boot
+RUN echo '[Unit]\n\
+Description=Startup Script\n\
+After=network.target\n\n\
+[Service]\n\
+WorkingDirectory=/root\n\
+ExecStart=/root/startup.sh\n\
+User=root\n\
+Restart=on-failure\n\
+TimeoutSec=30\n\n\
+[Install]\n\
+WantedBy=multi-user.target' &gt; /etc/systemd/system/startup.service
+RUN systemctl enable startup.service
+
+ENTRYPOINT ["/sbin/init"]
+RUN echo 'root:password' | chpasswd
+
+# Expose ports for Filebrowser, SellInABox, and Gradio
+EXPOSE 2121
+EXPOSE 4200
+EXPOSE 7860
+</code></pre>
+
+<p>Save the above as a <code>Dockerfile</code>, then build and run the container:</p>
+
+<pre><code>docker build -t  152334H/tortoise-tts-fast .
+docker run --runtime=nvidia --privileged --cap-add=ALL --name tortoise-tts-fast -p 2121:2121 -p 2222:4200 -p 7860:7860 -d 152334H/tortoise-tts-fast
+</code></pre>
+
+<p><strong>Ports for each service:</strong>  </p>
+
+<ul>
+<li>7860 - TorToiSe TTS Fast Streamlit app</li>
+<li>2121 - File Browser (user: admin, password: admin)</li>
+<li>2222 - ShellInABox (requires https, user: root, password: password)</li>
+</ul>
+
+<p>Note: The TorToiSe TTS Fast Streamlit app will take a few minutes to load on first run as all models are downloaded.</p>
+
+<p>Fine tune voices with: https://github.com/152334H/DL-Art-School</p>
+
+<hr />
+
+<h2>StableDiffusion Image Generation Dockerfile &amp; Usage</h2>
+
+<p><a href="https://github.com/AUTOMATIC1111/stable-diffusion-webui/tree/master">Stable Diffusion Web UI</a> is feature rich interface for Stable Diffusion, implemented using the Gradio library. The Dockerfile below builds a Stable Diffusion Web UI container, which uses Python 3.11 for project compatibility, fixes dependency issues, and runs the Gradio app at startup with third-party extensions enabled.</p>
+
+<pre><code>FROM nvidia/cuda:12.0.0-devel-ubuntu22.04
+
+# Optional: Change this to your local timezone
+ENV TZ=America/Chicago
+
+RUN apt update -y
+RUN apt install software-properties-common -y
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt update -y
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &amp;&amp; echo $TZ &gt; /etc/timezone
+RUN apt install tzdata -y
+
+# Optional: Install an old version of Python from deadsnakes, e.g. for Whisper AI
+RUN apt install python3.11 -y
+# RUN apt install python3 -y
+RUN apt install python3-pip -y
+
+RUN apt install curl -y
+RUN apt install git -y
+RUN apt install nano -y
+RUN apt install systemd systemd-sysv dbus dbus-user-session -y
+
+# Install ShellInABox
+RUN apt install openssl shellinabox -y
+
+# Install FileBroswer
+WORKDIR /root
+RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+
+# Install Stable Diffusion Web UI
+RUN apt install wget git python3 python3-venv libgl1 libglib2.0-0 ffmpeg libsm6 libxext6 -y
+RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui
+RUN apt clean -y
+
+# Create startup script to run FileBrowser and Gradio app
+WORKDIR /root/
+RUN echo '#!/bin/bash\n\n\
+# Run File Browser in background &amp; listen on 0.0.0.0:2121\n\
+FB_ROOT=/root/ FB_DATABASE=$FB_ROOT/filebrowser.db FB_BASEURL=/filebrowser/ FB_ADDRESS=0.0.0.0 FB_PORT=2121 /usr/local/bin/filebrowser &amp; exec &lt;/dev/null &gt;/dev/null 2&gt;/dev/null\n\n\
+# Listen parameter to listen on 0.0.0.0, no-half parameter for compatibility\n\
+bash /root/stable-diffusion-webui/webui.sh -f --listen --no-half --enable-insecure-extension-access' &gt; /root/startup.sh
+RUN chmod +x /root/startup.sh
+
+# Create a system.d service to run /root/startup.sh at boot
+RUN echo '[Unit]\n\
+Description=Startup Script\n\
+After=network.target\n\n\
+[Service]\n\
+WorkingDirectory=/root\n\
+ExecStart=/root/startup.sh\n\
+User=root\n\
+Restart=on-failure\n\
+TimeoutSec=30\n\n\
+[Install]\n\
+WantedBy=multi-user.target' &gt; /etc/systemd/system/startup.service
+RUN systemctl enable startup.service
+
+ENTRYPOINT ["/sbin/init"]
+RUN echo 'root:password' | chpasswd
+
+# Expose ports for Filebrowser, SellInABox, and Gradio
+EXPOSE 2121
+EXPOSE 4200
+EXPOSE 7860
+</code></pre>
+
+<p>Save the above as a <code>Dockerfile</code>, then build and run the container:</p>
+
+<pre><code>docker build -t AUTOMATIC1111/stable-diffusion-webui .
+docker run --runtime=nvidia --privileged --cap-add=ALL --name stable-diffusion-webui -p 2121:2121 -p 2222:4200 -p 7860:7860 -d AUTOMATIC1111/stable-diffusion-webui
+</code></pre>
+
+<p><strong>Ports for each service:</strong>  </p>
+
+<ul>
+<li>7860 - Stable Diffusion Web UI</li>
+<li>2121 - File Browser (user: admin, password: admin)</li>
+<li>2222 - ShellInABox (requires https, user: root, password: password)</li>
+</ul>
+
+<p>Note: Stable Diffusion Web UI will take a few minutes to load on first run as additional dependencies and models are downloaded.</p>
+
+<p>New models can be added to <code>/root/stable-diffusion-webui/models/Stable-diffusion</code>, e.g. https://huggingface.co/stabilityai/stable-diffusion-2-1/tree/main</p>
+
+<p>Generate vector images for graphic design: https://github.com/GeorgLegato/stable-diffusion-webui-vectorstudio</p>
+
+<hr />
+
+<h2>Text Generation Web UI Dockerfile &amp; Usage</h2>
+
+<p><a href="https://github.com/oobabooga/text-generation-webui">Text Generation Web UI</a> is a Gradio app for running Large Language Models. It supports multiple text generation backends and includes prompt templates that comply with various model prompt formatting structures. The Dockerfile below builds a Text Generation Web UI container and runs the Gradio app at startup with NVIDIA GPU support.</p>
+
+<pre><code>FROM nvidia/cuda:12.0.0-devel-ubuntu22.04
+
+# Optional: Change this to your local timezone
+ENV TZ=America/Chicago
+
+RUN apt update -y
+RUN apt install software-properties-common -y
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt update -y
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &amp;&amp; echo $TZ &gt; /etc/timezone
+RUN apt install tzdata -y
+
+# Optional: Install an old version of Python from deadsnakes, e.g. for Whisper AI
+RUN apt install python3.11 -y
+# RUN apt install python3 -y
+RUN apt install python3-pip -y
+
+RUN apt install curl -y
+RUN apt install git -y
+RUN apt install nano -y
+RUN apt install systemd systemd-sysv dbus dbus-user-session -y
+
+# Install ShellInABox
+RUN apt install openssl shellinabox -y
+RUN apt clean -y
+
+# Install FileBroswer
+WORKDIR /root
+RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+
+# Install Text Generation Web UI
+RUN git clone https://github.com/oobabooga/text-generation-webui/
+# Run start_linux.sh with user input "A" to configure NVIDIA support
+# RUN echo -e "A\n" | /root/text-generation-webui/start_linux.sh &gt;/dev/null
+
+# Create startup script to run FileBrowser and Gradio app
+WORKDIR /root/
+RUN echo '#!/bin/bash\n\n\
+# Run File Browser in background &amp; listen on 0.0.0.0:2121\n\
+FB_ROOT=/root/ FB_DATABASE=$FB_ROOT/filebrowser.db FB_BASEURL=/filebrowser/ FB_ADDRESS=0.0.0.0 FB_PORT=2121 /usr/local/bin/filebrowser &amp; exec &lt;/dev/null &gt;/dev/null 2&gt;/dev/null\n\n\
+# Listen parameter to listen on 0.0.0.0\n\
+# Pass user input "A" to configure NVIDIA support on first run
+echo -e "A\n" | /root/text-generation-webui/start_linux.sh --listen' &gt; /root/startup.sh
+RUN chmod +x /root/startup.sh
+
+# Create a system.d service to run /root/startup.sh at boot
+RUN echo '[Unit]\n\
+Description=Startup Script\n\
+After=network.target\n\n\
+[Service]\n\
+WorkingDirectory=/root\n\
+ExecStart=/root/startup.sh\n\
+User=root\n\
+Restart=on-failure\n\
+TimeoutSec=30\n\n\
+[Install]\n\
+WantedBy=multi-user.target' &gt; /etc/systemd/system/startup.service
+RUN systemctl enable startup.service
+
+ENTRYPOINT ["/sbin/init"]
+RUN echo 'root:password' | chpasswd
+
+# Expose ports for Filebrowser, SellInABox, and Gradio
+EXPOSE 2121
+EXPOSE 4200
+EXPOSE 7860
+</code></pre>
+
+<p>Save the above as a <code>Dockerfile</code>, then build and run the container:</p>
+
+<pre><code>docker build -t oobabooga/text-generation-webui .
+docker run --runtime=nvidia --privileged --cap-add=ALL --name text-generation-webui -p 2121:2121 -p 2222:4200 -p 7860:7860 -d oobabooga/text-generation-webui
+</code></pre>
+
+<p><strong>Ports for each service:</strong>  </p>
+
+<ul>
+<li>7860 - Text Generation Web UI</li>
+<li>2121 - File Browser (user: admin, password: admin)</li>
+<li>2222 - ShellInABox (requires https, user: root, password: password)</li>
+</ul>
+
+<p>Note: Text Generation Web UI will take a few minutes to load on first run as NVIDIA support is configured and additional dependencies are installed.</p>
+
+<hr />
+
+<h2>MaskGCT Voice Cloning Dockerfile &amp; Usage</h2>
+
+<p><a href="https://maskgct.github.io/">MaskGCT</a> is a high quality, consistent, and easy to use tool for voice cloning. It requires very short audio clips and performs best with clips in the 5 to 10 sec range. Longer clips are worse, surprisingly. I use voice samples with a diverse set of <a href="https://en.wikipedia.org/wiki/Phoneme">phonemes</a> and voice intonation that matches my desired output. MaskGCT is not picky about background noise, stereo WAV files, or WAV file sample rates like TorToiSe TTS.</p>
+
+<p>The build instructions on GitHub have broken dependencies. Below is a working Dockerfile, which includes fixes for those dependencies automatically runs the MaskGCT Gradio app at startup.</p>
+
+<pre><code>FROM nvidia/cuda:12.0.0-runtime-ubuntu22.04
+
+# Optional: Change this to your local timezone
+ENV TZ=America/Chicago
+
+# Use old Ubuntu repo for compatibility with MaskGCT install [SECURITY RISK]
+RUN sed -i 's|http://security.ubuntu.com/ubuntu|http://us.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list    
+
+RUN apt update -y
+RUN apt install software-properties-common -y
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt update -y
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &amp;&amp; echo $TZ &gt; /etc/timezone
+RUN apt install tzdata -y
+
+# Optional: Install an old version of Python from deadsnakes, e.g. for Whisper AI
+RUN apt install python3.10 -y
+# RUN apt install python3 -y
+RUN apt install python3-pip -y
+
+RUN apt install curl -y
+RUN apt install git -y
+RUN apt install nano -y
+RUN apt install systemd systemd-sysv dbus dbus-user-session -y
+
+# Install ShellInABox
+RUN apt install openssl shellinabox -y
+
+# Install FileBroswer
+WORKDIR /root
+RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+
+# Install MaskGCT system dependencies and clean up apt cache
+RUN apt install espeak-ng cmake ffmpeg --fix-missing -y
+RUN apt clean -y
+
+# Clone Amphion repository with sparse-checkout for MaskGCT
+RUN git clone --no-checkout --filter=blob:none https://github.com/open-mmlab/Amphion.git
+WORKDIR /root/Amphion
+RUN git sparse-checkout init --cone
+RUN git sparse-checkout set models/tts/maskgct
+RUN git checkout main
+RUN git sparse-checkout add models/codec utils
+
+# Fix broken Python dependencies &amp; install requirements
+RUN pip install numpy
+RUN pip install git+https://github.com/chameleon-ai/LangSegment-0.3.5-backup.git
+RUN pip install pyopenjtalk==0.3.4
+RUN pip install --no-build-isolation openai-whisper
+RUN pip install --no-cache-dir -r models/tts/maskgct/requirements.txt
+
+# Modify Gradio launch configuration to listen on 0.0.0.0
+RUN sed -i 's/iface\.launch(allowed_paths=\["\.\/output"\])/iface.launch(allowed_paths=\["\.\/output"\],server_name="0.0.0.0")/' models/tts/maskgct/gradio_demo.py
+
+# Create startup script to run FileBrowser and Gradio demo
+WORKDIR /root/
+RUN echo '#!/bin/bash\n\n\
+# Run File Browser in background &amp; listen on 0.0.0.0:2121\n\
+FB_ROOT=/root/ FB_DATABASE=$FB_ROOT/filebrowser.db FB_BASEURL=/filebrowser/ FB_ADDRESS=0.0.0.0 FB_PORT=2121 /usr/local/bin/filebrowser &amp; exec &lt;/dev/null &gt;/dev/null 2&gt;/dev/null\n\n\
+# Run MaskGCT gradio web UI and API\n\
+cd /root/Amphion/\n\
+python3 -m models.tts.maskgct.gradio_demo' &gt; /root/startup.sh
+RUN chmod +x /root/startup.sh
+
+# Create a system.d service to run /root/startup.sh at boot
+RUN echo '[Unit]\n\
+Description=Startup Script\n\
+After=network.target\n\n\
+[Service]\n\
+WorkingDirectory=/root\n\
+ExecStart=/root/startup.sh\n\
+User=root\n\
+Restart=on-failure\n\
+TimeoutSec=30\n\n\
+[Install]\n\
+WantedBy=multi-user.target' &gt; /etc/systemd/system/startup.service
+RUN systemctl enable startup.service
+
+ENTRYPOINT ["/sbin/init"]
+RUN echo 'root:password' | chpasswd
+
+# Expose ports for Filebrowser, SellInABox, and Gradio
+EXPOSE 2121
+EXPOSE 4200
+EXPOSE 7860
+</code></pre>
+
+<p>Save the above as a <code>Dockerfile</code>, then build and run the container:</p>
+
+<pre><code>docker build -t Amphion/mask-gct .
+docker run --runtime=nvidia --privileged --cap-add=ALL --name mask-gct -p 2121:2121 -p 2222:4200 -p 7860:7860 -d Amphion/mask-gct
+</code></pre>
+
+<p><strong>Ports for each service:</strong>  </p>
+
+<ul>
+<li>7860 - MaskGCT Gradio app</li>
+<li>2121 - File Browser (user: admin, password: admin)</li>
+<li>2222 - ShellInABox (requires https, user: root, password: password)</li>
+</ul>
+
+<p>Note: The MaskGCT Gradio app will take a few minutes to load on first run as all models are downloaded.</p>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Software</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

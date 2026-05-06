@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>Windows 95 Theme &amp; Flying Toasters Screensaver on Linux | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>Windows 95 Theme &amp; Flying Toasters Screensaver on Linux</h1>
+
+<h4>April 15, 2023</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>Take a ride in the Wayback Machine and get a highly responsive, minimalist, retro UI for your PC!</p>
+
+<hr />
+
+<h2>Gallery</h2>
+
+<article id="gallery"
+    <span class="slide"><a href="../projects/win95-linux/gallery01.jpg" class="gallery-link"><img src="../projects/win95-linux/gallery01.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/win95-linux/gallery02.jpg" class="gallery-link"><img src="../projects/win95-linux/gallery02.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/win95-linux/gallery03.jpg" class="gallery-link"><img src="../projects/win95-linux/gallery03.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/win95-linux/gallery04.jpg" class="gallery-link"><img src="../projects/win95-linux/gallery04.jpg" alt="Caption." /></a></span>
+</article>
+
+<hr />
+
+<h2>Chicago95 Install</h2>
+
+<p>Rather than copy the documentation here and risk it being out of date in the future, I recommend following the official instructions for automated install. Don't sleep on <a href="https://www.libreoffice.org/">LibreOffice</a> customization to get that Windows 95 look and feel in all of your office apps.</p>
+
+<p>Chicago95 theme GitHub repo: <a href="https://github.com/grassmunk/Chicago95">https://github.com/grassmunk/Chicago95</a></p>
+
+<hr />
+
+<h2>Windows 95 Style Weather Widgets</h2>
+
+<p>Install the XFCE weather widget:</p>
+
+<pre><code>sudo apt install xfce4-weather-plugin
+</code></pre>
+
+<p>Download the Windows 95 weather icons pack at the end of this section. Copy the included icon folders into the location <code>~/.config/xfce4/weather/icons/Chicago95/</code> (you'll need to create that directory inside the icons folder) and restart the widget. The new icon theme will be available under <strong>Properties &gt; Appearance &gt; Icon Theme</strong>.</p>
+
+<p>If you'd like to swap out the icons or simply don't trust my ZIP file, grab some icons from <a href="https://github.com/grassmunk/Chicago95_Extras">Chicago95 Extras</a>, then use the script below to convert SVG's to PNG:</p>
+
+<pre><code>#!/bin/bash
+
+mkdir -p {22,48,128}
+
+cd svg
+for i in *.svg;
+do
+  name="${i[@]/%svg/png}"
+
+  # Convert SVG into icon sized PNGs
+  inkscape -w 22 -h 22 "$i" -o ../22/"$name"
+  inkscape -w 48 -h 48 "$i" -o ../48/"$name"
+  inkscape -w 128 -h 128 "$i" -o ../128/"$name"
+
+done
+</code></pre>
+
+<p><a href="win95-linux/win95-weather-icons.zip" class="button primary icon solid fa-download" download="">Download</a>
+
+<hr />
+
+<h2>Flying Toasters Screensaver Install</h2>
+
+<p>If your Linux distro doesn't come with <a href="https://www.jwz.org/xscreensaver/screenshots/">XScreenSaver</a>, install it. Omit the asterisk if you don't want all of the screensavers. The full package is only ~40 MB and includes <a href="https://www.youtube.com/watch?v=VTAwxTVdyLc">3D Maze</a>, so:</p>
+
+<pre><code>sudo apt install xscreensaver*
+</code></pre>
+
+<p>This <a href="https://github.com/torunar/flying-toasters-xscreensaver/releases">GitHub repo</a> has a more authentic Flying Toasters screensaver than version included in XScreenSaver. Download it. Move it to your local binaries folder:</p>
+
+<pre><code>sudo mv flying-toasters /usr/local/bin/flying-toasters
+</code></pre>
+
+<p>Add the path of the <code>flying-toasters</code> binary to the <code>programs:</code> section of the XScreenSaver config file <code>~/.xscreensaver</code>. Either do this manually using a text editor or automatically using the command below:</p>
+
+<pre><code>sed -i '/^programs:/a\                                /usr/local/bin/flying-toasters              \\n\\' "$HOME/.xscreensaver"
+</code></pre>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Notes, Software</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

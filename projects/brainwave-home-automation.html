@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>Brainwave Controlled Home Automation | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>Brainwave Controlled Home Automation</h1>
+
+<h4>January 18, 2012</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>DIY solution to control room lights with brainwave activity, voice commands, and smartphone. Includes custom integration with smartphone alarm clock to sync wake-up time with sleep cycles, gently turn on the lights, speak the morning weather, and play music on the stereo.</p>
+
+<p><strong>Time Invested</strong>: 4 days <br />
+<strong>Cost (Outlet Remote)</strong>: $25 <br />
+<strong>Cost (Mindflex EEG)</strong>: $40 <br />
+<strong>Features</strong>:  </p>
+
+<ul>
+<li>Control lights with brain, voice, smartphone, computer</li>
+<li>Alarm clock integration with sleep cycle optimization</li>
+<li>Spoken morning weather forecast &amp; music</li>
+</ul>
+
+<hr />
+
+<h2>Video</h2>
+
+<article class="video-container"><iframe class="video" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" src="https://www.youtube.com/embed/Z96_WUoB1XA"></iframe></article>
+
+<article class="video-container"><iframe class="video" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" src="https://www.youtube.com/embed/XS7_zMwWjC4"></iframe></article>
+
+<hr />
+
+<h2>Details</h2>
+
+<p>Ever since I watched the Disney Channel original movie "<a href="https://www.youtube.com/watch?v=RxUZb3WnTpo">Smart House</a>" as a kid, I've been determined to build a real smart house for myself. In the summer of 2011, I purchased a wireless outlet controller with three switched outlets at my local hardware store. It was a low-cost RF system with no capability for WiFi control, but my intention was to change that.</p>
+
+<p>Just before the beginning of the spring semester I cracked open the remote control to figure out how it worked and, more importantly, figure out how to emulate button presses with a microcontroller. After a bit of experimentation and probing, I found an array of diodes on the circuit board where a HIGH signal could be introduced to emulate a button press. I soldered on a few leads, wrote an Arduino sketch to translate commands from my computer, and used that data to toggle the three wireless switches in my room.</p>
+
+<p>Having been recently introduced to the automation tool <a href="http://www.eventghost.net/">EventGhost</a> while configuring a network remote for <a href="https://xbmc.org/">XBMC</a>, I chose it to expand the capabilities of my light controller. Inside EventGhost, I configured macros to send serial data to my light controller in response to key combinations on my keyboard. Next, I leveraged the EventGhost <a href="https://github.com/timhoeck/eventghost-android">Android app</a> to control my lights with my phone and employed the EventGhost <a href="http://www.eventghost.net/forum/viewtopic.php?f=1&amp;t=18&amp;start=30">SpeechRecognition plugin</a> to control my lights with my voice. Inspired by a video I saw in late 2011 called <a href="https://vimeo.com/10184668">Brain Hack</a>, I also resolved to control my lights with my brain. I didn't expect it to be a practical means of control by any stretch of the imagination, but it was fun to add as a proof of concept. I acquired a Mattel Mindflex, found the Neurosky EEG module inside, and grabbed serial data from it using Erik Mika's <a href="https://github.com/kitschpatrol/Arduino-Brain-Library">brain library for Arduino</a>. Using that data I was able to control my lights using the brainwave activity in my prefrontal cortex.</p>
+
+<p>The last feature I added was an alarm clock function. I configured macros in EventGhost that, when triggered by the Android app, set a timer for 194, 374, or 464 minutes and ran an alarm clock function after the timer ran out. (Those times were selected based on a 90 minute sleep cycle and the fact that the average person takes 14 minutes to fall asleep – the same reasearch based assumptions used in the <a href="https://sleepyti.me/">sleepyti.me bedtime calculator</a>.) The alarm starts by quietly playing a song from my "wake up" playlist and turns on LED Christmas lights to wake me up gently. Next, it gets the local forecast from Google using the <a href="http://www.eventghost.net/forum/viewtopic.php?f=9&amp;t=1996">EventGhost Weather plugin,</a> speaks the weather aloud using text-to-speech, and tells me the current time. Finally, it increases the music volume to "time to get up" levels and turns on the rest of my lights. Using <a href="https://tasker.joaoapps.com/">Tasker</a> I configured this entire process to be triggered by setting a regular alarm on my phone.</p>
+
+<hr />
+
+<h2>Gallery</h2>
+
+<article id="gallery"
+    <span class="slide"><a href="../projects/brainwave-home-automation/gallery01.jpg" class="gallery-link"><img src="../projects/brainwave-home-automation/gallery01.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/brainwave-home-automation/gallery02.jpg" class="gallery-link"><img src="../projects/brainwave-home-automation/gallery02.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/brainwave-home-automation/gallery03.jpg" class="gallery-link"><img src="../projects/brainwave-home-automation/gallery03.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/brainwave-home-automation/gallery04.jpg" class="gallery-link"><img src="../projects/brainwave-home-automation/gallery04.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/brainwave-home-automation/gallery05.jpg" class="gallery-link"><img src="../projects/brainwave-home-automation/gallery05.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/brainwave-home-automation/gallery06.jpg" class="gallery-link"><img src="../projects/brainwave-home-automation/gallery06.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/brainwave-home-automation/gallery07.jpg" class="gallery-link"><img src="../projects/brainwave-home-automation/gallery07.jpg" alt="Caption." /></a></span>
+</article>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Hardware, Software</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+

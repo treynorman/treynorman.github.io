@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<!--
+        Built with my janky, opinoinated DIY static site generator.
+        Base site is a derivative of Phantom by HTML5 UP with added features (html5up.net | @ajlkn)
+        You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license (CC BY-SA 4.0).
+    -->
+<html>
+  <head>
+    <title>Film Negative Scanning With Automatic Backup | Trey Norman</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico" />
+    <noscript><link rel="stylesheet" href="../assets/css/noscript.css"  /></noscript>
+  </head>
+  <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+      <!-- Header -->
+      <header id="header">
+        <div class="inner">
+          <!-- Logo -->
+          <a href="../index.html" class="logo">
+            <span class="symbol"><img src="../images/logo.svg" alt="" /></span
+            ><span class="title">Trey Norman</span>
+          </a>
+
+          <!-- Nav -->
+          <nav>
+            <ul>
+              <li><a href="#menu">Menu</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Menu -->
+      <nav id="menu">
+        <h2>Menu</h2>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../projects/index.html">Projects</a></li>
+          <li><a href="../about.html">About</a></li>
+        </ul>
+      </nav>
+      <!-- Main -->
+      <div id="main">
+        <div class="inner">
+<h1>Film Negative Scanning With Automatic Backup</h1>
+
+<h4>August 23, 2022</h4>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>This tutorial provides a method to scan old film photo negatives using a <a href="https://plustek.com/us/products/film-photo-scanners/opticfilm-8300i-ai/">Plustek OpticFilm scanner</a> for archival and editing. Photos are saved in RAW format, converted to JPG using a script, then remotely backed up to my server.</p>
+
+<hr />
+
+<h2>Gallery</h2>
+
+<article id="gallery"
+    <span class="slide"><a href="../projects/film-scanning/gallery01.jpg" class="gallery-link"><img src="../projects/film-scanning/gallery01.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/film-scanning/gallery02.jpg" class="gallery-link"><img src="../projects/film-scanning/gallery02.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/film-scanning/gallery03.jpg" class="gallery-link"><img src="../projects/film-scanning/gallery03.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/film-scanning/gallery04.jpg" class="gallery-link"><img src="../projects/film-scanning/gallery04.jpg" alt="Caption." /></a></span>
+    <span class="slide hidden"><a href="../projects/film-scanning/gallery05.jpg" class="gallery-link"><img src="../projects/film-scanning/gallery05.jpg" alt="Caption." /></a></span>
+</article>
+
+<hr />
+
+<h2>Details</h2>
+
+<p>Many people don't realize that 35mm film photos can be digitized in much higher resolution than old prints can provide. This requires the original negatives and, for optimal quality, requires that the photos were taken on a camera with good optics.</p>
+
+<p>My father was an amateur photographer and preserved all photo negatives from our family vacations, trips he took in his 20s, and even a concert he snuck into in the 1970s using a fake press pass. For years, I’ve wanted to archive these images and restore them. My mother also expressed interest, and her recent retirement gave us the perfect chance to start. For her birthday, I bought a professional-grade film and slide scanner. The scanning process isn’t a simple one-click operation, so I created this tutorial to assist her from across the country.</p>
+
+<p>The method below catalogs 35mm film photos in RAW format at a resolution ~18MP per photo. The scanner is capable of scanning at twice that resolution. However, I found in practice that scanning a 35 mm photo at 7200ppi simply accentuates the film grain, even in photos taken using a high end SLR from the 1990s. As reluctant as I am to lose data during archival, 200MB per photo vs 50MB is too much when all we're doing is sharpening film grain.</p>
+
+<p>One of the most interesting features of the scanner is its ability to scan multiple times at different exposure levels. It's a bit like HDR – bringing out features that have spent decades lost in the shadows or washed out in the highlights. These features aren't always visible in the preview, but they're encoded in the RAW image data and can be brought out when editing in Lightroom or <a href="https://www.darktable.org/">Darktable</a>.</p>
+
+<p>An <a href="https://imagemagick.org/">ImageMagick</a> script converts the RAW files to JPG. <a href="https://syncthing.net/">Syncthing</a> automatically backs up all scanned photos to my server across the country, which stores them in a RAID 6 array. The server can withstand up to two hard drive failures without any data loss, but in abundance of caution, all photos are regularly backed up to external hard drives as well. The end result is three copies of every archived photo stored in two locations.</p>
+
+<hr />
+
+<h2>Software Installation</h2>
+
+<h3>SilverFast 9 installation &amp; configuration</h3>
+
+<p>Install the SilverFast 9 software from the included USB drive. The default location for the installer should be:</p>
+
+<p><code>D:\Windows\SilverFast\SilverFast-9-Installer.exe</code></p>
+
+<p>A color calibration slide is included with the Plustek scanner. It is important to calibrate the scanner before using it to ensure color accuracy of scanned negatives and avoid hours of headaches later. I completed this process after the scanner arrived, so we only need the resulting color calibration files. Copy color calibration files from the USB drive to the SilverFast program data directory.</p>
+
+<p>Copy:</p>
+
+<p><code>D:\IT8 Reference Files</code></p>
+
+<p>To:</p>
+
+<p><code>C:\ProgramData\LaserSoft Imaging\SilverFast 9\</code></p>
+
+<p>Instructions for color calibration are <a href="https://www.youtube.com/watch?v=_iuX81yl0Hc">available here for reference.</a></p>
+
+<p>Run <strong>SilverFast 9</strong> and log in using the account information provided.</p>
+
+<hr />
+
+<h2>Negatives Scanning Process</h2>
+
+<p>Load a strip of negatives into the tray.</p>
+
+<ul>
+<li>Wear white cotton gloves to avoid getting grease on the negatives. </li>
+<li>Remove any dust using the air blaster bulb.</li>
+</ul>
+
+<p>Gently insert the tray into scanner until you feel a slight click.</p>
+
+<p><strong>Initial software setup</strong> is completed once per scanning session. <strong>Scanning steps</strong> are completed for each individual negative.</p>
+
+<h3>Initial software setup</h3>
+
+<p>Run the <strong>SilverFast 9</strong> software, then click <strong>Start</strong>.</p>
+
+<p>Click <strong>Cancel</strong> if the software complains that it's waiting for a printer.</p>
+
+<p>Click <strong>WorkflowPilot</strong> in the top left corner to activate the scanning wizard. This tool simplifies the scanning process.</p>
+
+<p><img class="image fit" src="film-scanning/steps/1.png" alt="Enable the WorkflowPilot wizard" /></p>
+
+<p>In the <strong>WorkflowPilot</strong>, set the <strong>Source</strong> to <strong>Negative</strong> and the <strong>Task</strong> to <strong>Web</strong>.</p>
+
+<pre><code>Source: Negative
+Task: Web
+</code></pre>
+
+<p>Then, click <strong>Start</strong> to advance to the <strong>ME</strong> section.</p>
+
+<p><img class="image fit" src="film-scanning/steps/2.png" alt="Set source to Negative and task to Web" /></p>
+
+<p>In the <strong>ME</strong> section, ensure that Multi-Exposure (ME) is enabled. A red indicator will be shown next to the ME icon to confirm that it's enabled. <strong>No action</strong> should be required.</p>
+
+<p>Then, click the <strong>right arrow</strong> to advance to <strong>Prescan</strong>.</p>
+
+<p><img class="image fit" src="film-scanning/steps/3.png" alt="Ensure that ME is enabled" /></p>
+
+<h3>Scanning steps</h3>
+
+<p>A prescan will run automatically when <strong>Prescan</strong> is selected. This creates a fast, low-quality preview used to make adjustments prior to running the final scan. After the prescan is complete, the software should automatically advance to the <strong>Frames &amp; Resolution</strong> section.</p>
+
+<p>Use the <strong>Rot/Flip (Compass Button)</strong> to rotate and flip image as needed.</p>
+
+<p><strong>Click and drag</strong> the red box around image to capture as much of it as possible in the final scan. Some black borders may make it through to the end. That's okay as long as important parts of the photo aren't cut off.</p>
+
+<p><em>Note: If the negative strip is not aligned properly in the tray, large black borders will be visible and parts of the image will be cut off. To realign the negative strip, remove the tray, center the negative, reinsert the tray, and click <strong>Prescan</strong> again to update the preview.</em></p>
+
+<p><img class="image fit" src="film-scanning/steps/4.png" alt="Rotate, flip, and crop as needed" /></p>
+
+<p>After cropping, ensure that the <strong>Scan resolution</strong> is set to the second highest setting, <strong>3600ppi</strong>. This should be the default. The highest setting is overkill, takes too long to scan, and will create gigantic photos (~200 MB) that basically just accentuate the film grain when zoomed in.</p>
+
+<pre><code>Scan resolution: 3600ppi
+</code></pre>
+
+<p><img class="image fit" src="film-scanning/steps/5.png" alt="Set scan resolution to 3600ppi" /></p>
+
+<p>Next, configure the <strong>NegaFix</strong> settings. This is an important step to ensure that the colors are correct in the scanned image.</p>
+
+<p>Select the appropriate <strong>Vendor</strong>, <strong>Type</strong>, and <strong>ISO/ASA</strong> based on the film used to capture the photo. The film type is typically indicated in small text at the top of the negative strip. It can be difficult to decipher the text on the negative strip, so you might need to Google what you read to figure out which settings to select. For example:</p>
+
+<pre><code>KODAK GT. 800-4 = Kodak Max Zoom 800
+KODAK CX 100 = Kodak Ektar 100
+KODAK 5100 EKTAR 25-1 = Kodak Ektar 100 &amp; Exposure=-0.5 (compensation for lack of support for Ektar 25)
+</code></pre>
+
+<p>After identifying the film for NegaFix, click the <strong>right arrow</strong> to advance to <strong>Auto</strong> settings.</p>
+
+<p><img class="image fit" src="film-scanning/steps/6.png" alt="Identify the film for NegaFix" /></p>
+
+<p>In the <strong>Auto</strong> settings, let the software automatically adjust the <strong>Input Histogram</strong> and <strong>Gradiation</strong>. Less is more here. Sometimes the settings chosen by the software will make the image too bright or too dark. If that's the case, disable them by clicking the <strong>checkmarks</strong> next to each setting. It's best to start with a neutral scan, then edit the image later to avoid losing data.</p>
+
+<p>Once this check is complete, click the <strong>right arrow</strong> to advance to the <strong>iSRD</strong> section.</p>
+
+<p><img class="image fit" src="film-scanning/steps/7.png" alt="Uncheck the boxes if it's too bright or too dark" /></p>
+
+<p>In the <strong>iSRD</strong> section, ensure the <strong>Mode</strong> is set to <strong>Correct</strong>, the <strong>Automatic</strong> box is <strong>checked</strong>. These should be the default settings.</p>
+
+<pre><code>Mode: Correct
+Automatic: *check*
+</code></pre>
+
+<p>Then, click the <strong>right arrow</strong> to advance to <strong>Export Options</strong>.</p>
+
+<p><img class="image fit" src="film-scanning/steps/8.png" alt="Set Mode to Correct and check the Automatic box" /></p>
+
+<p>In the <strong>Export Options</strong>, configure the settings used to save all photos that will be scanned during the current scanning session.</p>
+
+<ul>
+<li>Input a <strong>File Name</strong> for the scanning session using the most accurate date you can provide. My preferred format is Year-Month-Day. However, unless the photos are from a holiday or birthday party, I doubt the exact date will be known. Do the best you can; e.g. 1992-Fall, 1992-09, 1992-12, etc.</li>
+<li>Set <strong>Numbering</strong> to <strong>Sequential</strong> to automatically save photos with sequential numbering; e.g. 1992-Fall<em>1.tif,  1992-Fall</em>2.tif,  1992-Fall_3.tif, etc.</li>
+<li>Set the <strong>Start Index</strong> to <strong>1</strong> for every new photo album. This is a nerdy way for the software to ask where to start counting. You can change this if you want to continue counting from some other number.</li>
+<li>Ensure that <strong>Export To</strong> is set to <strong>Custom</strong> and the <strong>Upload</strong> folder on the Desktop is selected. This is the location that scanned photos will be saved to. Everything inside the Upload folder is automatically uploaded to my server and backed up.</li>
+<li>Use the <strong>TIFF</strong> file format to preserve quality.</li>
+</ul>
+
+<pre><code>File Name: &lt;something descriptive&gt; (e.g. 1992-Fall)
+Numbering: Sequential
+Start Index: 1
+Export To: Custom
+File Format: TIFF
+</code></pre>
+
+<p>Once everything is set, click <strong>Next</strong> to <strong>Scan &amp; Process</strong> the image.</p>
+
+<p><img class="image fit" src="film-scanning/steps/9.png" alt="Configure Export Options for saving scanned photos" /></p>
+
+<p>After a successful scan, advance the tray in the scanner until you feel a slight click to get to the next negative.</p>
+
+<p>Click <strong>Prescan</strong> and repeat the <strong>Scanning steps</strong> process. Very few settings changes will be required for new negatives in the same album, if any. When a prescan reveals that a photo is blurry or not worth keeping, just move to the next one and click <strong>Prescan</strong> again to update the preview.</p>
+
+<p><img class="image fit" src="film-scanning/steps/10.png" alt="Click Prescan to preview and the next negative" /></p>
+
+<hr />
+
+<h2>Photo conversion to JPG</h2>
+
+<p>Original scans in TIF format are large and mostly useful for archiving photos in high quality. They enable old photos to be given new life through editing. For everyday use, however, the JPG format is better.</p>
+
+<p>To convert all scanned photos to JPG for immediate use on social media, email, etc, double click the <strong>Convert</strong> icon on the Desktop. This tool will convert all TIF images in the Upload folder to the JPG format and copy them to the Scanned Pictures folder.</p>
+
+<p><img class="image fit" src="film-scanning/steps/Convert.png" alt="Double-click Convert to convert TIF images JPG" /></p>
+
+<p>Photos inside the <strong>Scanned Pictures</strong> folder may be renamed, reorganized, moved, copied, uploaded to social media, etc. This folder is not monitored or uploaded to the server.</p>
+
+<p><img class="image fit" src="film-scanning/steps/Scanned-Pictures.png" alt="Scanned Pictures contains JPG photos for everyday use" /></p>
+
+<hr />
+
+<p><em>License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 Deed</a> - You may copy, adapt, and use this work for any purpose, even commercial, but only if derivative works are distributed under the same license.</em></p>
+
+<p><em>Category: Notes</em></p>
+
+        </div>
+    </div>
+      <!-- Footer -->
+      <footer id="footer">
+        <div class="inner">
+          <section>
+            <h2>Connect</h2>
+            <ul class="icons">
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/treynorman"
+                  class="icon brands style2 fa-linkedin"
+                  ><span class="label">LinkedIn</span></a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.github.com/treynorman"
+                  class="icon brands style2 fa-github"
+                  ><span class="label">GitHub</span></a
+                >
+              </li>
+            </ul>
+          </section>
+          <ul class="copyright">
+            <li>
+              <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                >Creative Commons Licensed</a
+              >
+            </li>
+            <li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
+    <script src="../assets/js/browser.min.js"></script>
+    <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/main.js"></script>
+  </body>
+</html>
+
