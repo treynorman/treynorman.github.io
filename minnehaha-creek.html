@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minnehaha Creek @ Hiawatha Ave</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f0f4f8;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 3rem 4rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 1.1rem;
+    color: #5a6a7a;
+    font-weight: 500;
+    margin-bottom: 2rem;
+  }
+
+  .metric {
+    margin: 1.5rem 0;
+  }
+
+  .label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8899aa;
+    margin-bottom: 0.25rem;
+  }
+
+  .value {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #1a2b3c;
+  }
+
+  .unit {
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: #8899aa;
+    margin-left: 0.25rem;
+  }
+
+  .ts {
+    margin-top: 2rem;
+    font-size: 0.75rem;
+    color: #aabbcc;
+  }
+
+  .error {
+    color: #c0392b;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Minnehaha Creek @ Hiawatha Ave (USGS 05289800)</h1>
+  <div id="gage-height" class="metric">
+    <div class="label">Gage Height</div>
+    <div id="gh-value" class="value"><span class="unit">loading...</span></div>
+  </div>
+  <div id="flow-rate" class="metric">
+    <div class="label">Flow Rate</div>
+    <div id="fr-value" class="value"><span class="unit">loading...</span></div>
+  </div>
+  <div id="ts" class="ts"></div>
+</div>
+
+<script>
+  const SITE = '05289800';
+  const URL = `https://waterservices.usgs.gov/nwis/iv/?sites=${SITE}&parameterCd=00060,00065&siteStatus=all`;
+
+  async function fetchUSGS() {
+    const res = await fetch(URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.text();
+  }
+
+  function parse(xmlText) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'application/xml');
+    const series = doc.querySelectorAll('timeSeries');
+    const result = {};
+    for (const ts of series) {
+      const code = ts.querySelector('variableCode').textContent;
+      const valEl = ts.querySelector('value');
+      const dateTime = valEl.getAttribute('dateTime');
+      const qualifiers = valEl.getAttribute('qualifiers') || '';
+      result[code] = {
+        name: ts.querySelector('siteName').textContent.trim(),
+        value: parseFloat(valEl.textContent),
+        dateTime,
+        provisional: qualifiers.includes('P')
+      };
+    }
+    return result;
+  }
+
+  function setEl(id, value) {
+    const el = document.getElementById(id);
+    if (isNaN(value)) {
+      el.innerHTML = '<span class="error">No data</span>';
+      return;
+    }
+    const display = Number.isInteger(value) ? value : value.toFixed(2);
+    el.innerHTML = `${display}<span class="unit"></span>`;
+  }
+
+  function formatTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return `Updated: ${d.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
+  }
+
+  async function main() {
+    try {
+      const xml = await fetchUSGS();
+      const parsed = parse(xml);
+
+      if (parsed['00065']) setEl('gh-value', parsed['00065'].value);
+      else document.getElementById('gh-value').innerHTML = '<span class="error">No data</span>';
+
+      if (parsed['00060']) setEl('fr-value', parsed['00060'].value);
+      else document.getElementById('fr-value').innerHTML = '<span class="error">No data</span>';
+
+      // Use the latest timestamp from any source
+      let ts = '';
+      const times = Object.values(parsed).map(p => p.dateTime).filter(Boolean);
+      if (times.length) ts = formatTime(times.sort().pop());
+      document.getElementById('ts').textContent = ts;
+
+    } catch (err) {
+      const ghEl = document.getElementById('gh-value');
+      const frEl = document.getElementById('fr-value');
+      const msg = `<span class="error">${err.message}. Check console.</span>`;
+      ghEl.innerHTML = msg;
+      frEl.innerHTML = msg;
+      console.error(err);
+    }
+  }
+
+  main();
+</script>
+</body>
+</html>
