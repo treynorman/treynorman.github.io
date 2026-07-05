@@ -4,82 +4,206 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Minnehaha Creek @ Hiawatha Ave</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: #f0f4f8;
+  :root {
+    --bone: #f1ede2;
+    --paper: #faf8f1;
+    --ink: #0c0c0b;
+    --ink-2: #2a2a26;
+    --mute: #8a857a;
+    --hazard: #ff4a17;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --display: 'Space Grotesk', 'Helvetica Neue', Helvetica, system-ui, sans-serif;
   }
 
-  .card {
-    background: white;
-    border-radius: 16px;
-    padding: 3rem 4rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    text-align: center;
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    font-family: var(--display);
+    background: var(--bone);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hero {
+    background:
+      repeating-linear-gradient(
+        45deg,
+        transparent 0,
+        transparent 22px,
+        rgba(12,12,11,0.04) 22px,
+        rgba(12,12,11,0.04) 23px
+      ),
+      var(--bone);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .hero-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 28px 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0 0 18px;
   }
 
   h1 {
-    font-size: 1.1rem;
-    color: #5a6a7a;
-    font-weight: 500;
-    margin-bottom: 2rem;
-  }
-
-  .metric {
-    margin: 1.5rem 0;
-  }
-
-  .label {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #8899aa;
-    margin-bottom: 0.25rem;
-  }
-
-  .value {
-    font-size: 3.5rem;
+    font-family: var(--display);
     font-weight: 700;
-    color: #1a2b3c;
+    font-size: clamp(36px, 6vw, 56px);
+    line-height: 0.92;
+    text-transform: uppercase;
+    letter-spacing: -0.015em;
+    margin: 0 0 8px;
   }
 
-  .unit {
-    font-size: 1.2rem;
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--mute);
+    letter-spacing: 0.04em;
+    margin-bottom: 24px;
+  }
+
+  .grid-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 28px 80px;
+  }
+
+  /* ── Metric cards ── */
+
+  .card-frame {
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 600px) {
+    .card-frame { grid-template-columns: 1fr; }
+  }
+
+  .metric-card {
+    padding: 40px 32px;
+    border-right: 2px solid var(--ink);
+  }
+
+  @media (max-width: 600px) {
+    .metric-card { border-right: none; }
+  }
+
+  .metric-card:nth-child(2) { border-right: none; }
+  .metric-card:nth-child(3),
+  .metric-card:nth-child(4) { border-bottom: none; }
+
+  @media (max-width: 600px) {
+    .metric-card:last-child { border-bottom: none; }
+  }
+
+  .metric-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-bottom: 16px;
+  }
+
+  .metric-value {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(48px, 8vw, 72px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .metric-unit {
+    font-family: var(--mono);
+    font-size: 14px;
     font-weight: 400;
-    color: #8899aa;
-    margin-left: 0.25rem;
+    color: var(--mute);
+    margin-left: 6px;
   }
 
-  .ts {
-    margin-top: 2rem;
-    font-size: 0.75rem;
-    color: #aabbcc;
+  .metric-time {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--mute);
+    margin-top: 12px;
   }
 
-  .error {
-    color: #c0392b;
-    font-size: 0.9rem;
+  /* ── Footer ── */
+
+  .foot {
+    background: var(--ink);
+    color: var(--bone);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 24px 28px;
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .foot a {
+    color: var(--bone);
+    border-bottom: 1.5px solid var(--bone);
+  }
+
+  /* ── Error state ── */
+
+  .error-msg {
+    color: var(--hazard);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
   }
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>Minnehaha Creek @ Hiawatha Ave (USGS 05289800)</h1>
-  <div id="gage-height" class="metric">
-    <div class="label">Gage Height</div>
-    <div id="gh-value" class="value"><span class="unit">loading...</span></div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">USGS Real-Time Data</p>
+    <h1>Minnehaha Creek<br>@ Hiawatha Ave</h1>
+    <p class="subtitle">Gauge Station 05289800 — Minneapolis, MN</p>
   </div>
-  <div id="flow-rate" class="metric">
-    <div class="label">Flow Rate</div>
-    <div id="fr-value" class="value"><span class="unit">loading...</span></div>
+</div>
+
+<div class="grid-wrap">
+  <div class="card-frame">
+    <div class="metric-card" id="gh-card">
+      <div class="metric-label">Gage Height</div>
+      <div class="metric-value"><span id="gh-val">—</span><span class="metric-unit">ft</span></div>
+      <div class="metric-time" id="gh-ts"></div>
+    </div>
+    <div class="metric-card" id="fr-card">
+      <div class="metric-label">Flow Rate</div>
+      <div class="metric-value"><span id="fr-val">—</span><span class="metric-unit">cfs</span></div>
+      <div class="metric-time" id="fr-ts"></div>
+    </div>
   </div>
-  <div id="ts" class="ts"></div>
+</div>
+
+<div class="foot">
+  <span>Data: USGS NWIS — waterservices.usgs.gov</span>
+  <a href="https://waterdata.usgs.gov/monitoring-location/05289800/">Full history →</a>
 </div>
 
 <script>
@@ -103,7 +227,6 @@
       const dateTime = valEl.getAttribute('dateTime');
       const qualifiers = valEl.getAttribute('qualifiers') || '';
       result[code] = {
-        name: ts.querySelector('siteName').textContent.trim(),
         value: parseFloat(valEl.textContent),
         dateTime,
         provisional: qualifiers.includes('P')
@@ -112,20 +235,22 @@
     return result;
   }
 
-  function setEl(id, value) {
-    const el = document.getElementById(id);
+  function setMetric(valueElId, tsId, value) {
+    const valEl = document.getElementById(valueElId);
     if (isNaN(value)) {
-      el.innerHTML = '<span class="error">No data</span>';
+      valEl.innerHTML = '<span class="error-msg">No data</span>';
       return;
     }
     const display = Number.isInteger(value) ? value : value.toFixed(2);
-    el.innerHTML = `${display}<span class="unit"></span>`;
+    valEl.textContent = display;
   }
 
-  function formatTime(iso) {
-    if (!iso) return '';
+  function setTime(tsId, iso) {
+    const el = document.getElementById(tsId);
+    if (!iso) { el.textContent = ''; return; }
     const d = new Date(iso);
-    return `Updated: ${d.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
+    const tz = d.toLocaleString('en-US', { timeZoneName: 'short' });
+    el.textContent = `Updated: ${tz}`;
   }
 
   async function main() {
@@ -133,24 +258,24 @@
       const xml = await fetchUSGS();
       const parsed = parse(xml);
 
-      if (parsed['00065']) setEl('gh-value', parsed['00065'].value);
-      else document.getElementById('gh-value').innerHTML = '<span class="error">No data</span>';
+      if (parsed['00065']) {
+        setMetric('gh-val', null, parsed['00065'].value);
+        setTime('gh-ts', parsed['00065'].dateTime);
+      } else {
+        document.getElementById('gh-val').innerHTML = '<span class="error-msg">No data</span>';
+      }
 
-      if (parsed['00060']) setEl('fr-value', parsed['00060'].value);
-      else document.getElementById('fr-value').innerHTML = '<span class="error">No data</span>';
-
-      // Use the latest timestamp from any source
-      let ts = '';
-      const times = Object.values(parsed).map(p => p.dateTime).filter(Boolean);
-      if (times.length) ts = formatTime(times.sort().pop());
-      document.getElementById('ts').textContent = ts;
+      if (parsed['00060']) {
+        setMetric('fr-val', null, parsed['00060'].value);
+        setTime('fr-ts', parsed['00060'].dateTime);
+      } else {
+        document.getElementById('fr-val').innerHTML = '<span class="error-msg">No data</span>';
+      }
 
     } catch (err) {
-      const ghEl = document.getElementById('gh-value');
-      const frEl = document.getElementById('fr-value');
-      const msg = `<span class="error">${err.message}. Check console.</span>`;
-      ghEl.innerHTML = msg;
-      frEl.innerHTML = msg;
+      const msg = '<span class="error-msg">Fetch failed</span>';
+      document.getElementById('gh-val').innerHTML = msg;
+      document.getElementById('fr-val').innerHTML = msg;
       console.error(err);
     }
   }
