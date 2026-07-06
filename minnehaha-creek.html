@@ -76,7 +76,7 @@
 
   .grid-wrap {
     max-width: 860px;
-    margin: 0 auto;
+    margin: 40px auto 0;
     padding: 0 28px 80px;
   }
 
@@ -85,6 +85,7 @@
   .card-frame {
     border: 2px solid var(--ink);
     background: var(--paper);
+    box-shadow: 5px 5px 0 var(--ink);
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
@@ -126,6 +127,10 @@
     line-height: 1;
     letter-spacing: -0.02em;
     color: var(--ink);
+  }
+
+  .metric-value .live {
+    color: var(--hazard);
   }
 
   .metric-unit {
@@ -190,12 +195,12 @@
   <div class="card-frame">
     <div class="metric-card" id="gh-card">
       <div class="metric-label">Gage Height</div>
-      <div class="metric-value"><span id="gh-val">—</span><span class="metric-unit">ft</span></div>
+      <div class="metric-value"><span id="gh-val" class="live">—</span><span class="metric-unit">ft</span></div>
       <div class="metric-time" id="gh-ts"></div>
     </div>
     <div class="metric-card" id="fr-card">
       <div class="metric-label">Flow Rate</div>
-      <div class="metric-value"><span id="fr-val">—</span><span class="metric-unit">cfs</span></div>
+      <div class="metric-value"><span id="fr-val" class="live">—</span><span class="metric-unit">cfs</span></div>
       <div class="metric-time" id="fr-ts"></div>
     </div>
   </div>
