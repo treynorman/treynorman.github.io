@@ -22,6 +22,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html, body {
+    min-height: 100vh;
     font-family: var(--display);
     background: var(--bone);
     color: var(--ink);
@@ -161,6 +162,8 @@
     padding: 24px 28px;
     max-width: 860px;
     margin: 0 auto;
+    position: sticky;
+    bottom: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -197,6 +200,12 @@
     letter-spacing: 0.08em;
     color: var(--bone);
     border-radius: 0;
+  }
+
+  /* ── Mobile stack gap ── */
+
+  @media (max-width: 600px) {
+    .metric-time { margin-top: 6px; }
   }
 </style>
 </head>
