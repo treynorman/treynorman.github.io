@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Maze — Windows 95 Screensaver</title>
+<style>
+:root{
+  --face:#c0c0c0; --hi:#ffffff; --lo:#dfdfdf; --sh:#808080; --dk:#0a0a0a;
+  --teal:#008080; --navy:#000080;
+}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0; background:#000; overflow:hidden;
+  font-family:Tahoma,"MS Sans Serif","Segoe UI",Verdana,sans-serif;
+  font-size:11px; color:#000; cursor:default;
+  -webkit-user-select:none; user-select:none;
+}
+.hidden{ display:none !important; }
+button{ font-family:inherit; font-size:11px; }
+.btn95{
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--face); border:0; color:#000; padding:2px 0; cursor:pointer;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi),
+              inset -2px -2px var(--sh), inset 2px 2px var(--lo);
+}
+.btn95:active{
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk),
+              inset -2px -2px var(--lo), inset 2px 2px var(--sh);
+}
+.btn95:focus{ outline:1px dotted #000; outline-offset:-4px; }
+
+/* ---------------- screensaver stage ---------------- */
+#stage{ position:fixed; inset:0; background:#000; }
+#gl{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:none; }
+#vignette{
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 46%, rgba(0,0,0,0) 52%, rgba(0,0,0,.38) 100%);
+}
+#fade{ position:absolute; inset:0; background:#000; opacity:0; pointer-events:none; transition:opacity .5s ease; }
+#hint{
+  position:absolute; top:10px; left:12px; z-index:7; pointer-events:none;
+  background:rgba(14,11,8,.62); border:1px solid #000; color:#cfc8ba;
+  padding:7px 11px; line-height:1.7; transition:opacity .9s ease; max-width:360px;
+}
+#hint b{ color:#fff; }
+#hint.hide{ opacity:0; }
+#pausedChip{
+  position:absolute; left:12px; bottom:48px; z-index:7;
+  background:var(--face); color:#000; font-weight:bold; padding:3px 10px;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi),
+              inset -2px -2px var(--sh), inset 2px 2px var(--lo);
+}
+
+/* caption bar (the classic screensaver nameplate) */
+#caption{
+  position:absolute; left:0; right:0; bottom:0; height:34px; z-index:8;
+  background:var(--face); display:flex; align-items:center; gap:8px; padding:0 6px;
+  box-shadow: inset 0 1px 0 var(--hi), inset 0 2px 0 var(--lo);
+}
+#caption .cap-ico{ width:16px; height:16px; flex:0 0 auto; }
+#caption .cap-title{ font-weight:bold; }
+.cap-spacer{ flex:1; }
+.status-field{
+  background:#fff; color:#111; min-width:56px; text-align:center; padding:1px 8px;
+  box-shadow: inset 1px 1px 0 var(--sh), inset 2px 2px 0 var(--lo), inset -1px -1px 0 var(--hi);
+}
+#capClose{ width:26px; height:22px; font-size:13px; font-weight:bold; }
+
+/* ---------------- desktop ---------------- */
+#desktop{ position:fixed; inset:0; background:var(--teal); z-index:20; }
+#icons{ position:absolute; top:18px; left:16px; display:flex; flex-direction:column; gap:14px; }
+.icon{ width:82px; text-align:center; cursor:pointer; }
+.icon svg{ width:32px; height:32px; display:inline-block; }
+.icon .label{
+  display:inline-block; margin-top:4px; color:#fff; padding:0 3px;
+  text-shadow:1px 1px 0 rgba(0,0,0,.75);
+}
+.icon.sel svg{ outline:1px dotted #fff; }
+.icon.sel .label{ background:var(--navy); outline:1px dotted #fff; text-shadow:none; }
+#balloon{
+  position:absolute; left:92px; top:56px; width:204px; z-index:22;
+  background:#ffffe1; border:1px solid #000; padding:8px 10px;
+  box-shadow:2px 2px 0 rgba(0,0,0,.3);
+}
+#balloon::before{
+  content:""; position:absolute; top:-8px; left:6px;
+  border:7px solid transparent; border-bottom:8px solid #000; border-top:0;
+}
+#balloon::after{
+  content:""; position:absolute; top:-6px; left:7px;
+  border:6px solid transparent; border-bottom:7px solid #ffffe1; border-top:0;
+}
+
+/* ---------------- dialog ---------------- */
+#dialog{
+  position:fixed; left:50%; top:44%; transform:translate(-50%,-50%);
+  width:316px; z-index:30; background:var(--face);
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi),
+              inset -2px -2px var(--sh), inset 2px 2px var(--lo),
+              3px 3px 0 rgba(0,0,0,.35);
+}
+.dlg-title{
+  display:flex; align-items:center; justify-content:space-between;
+  background:linear-gradient(90deg,var(--navy),#1084d0);
+  color:#fff; font-weight:bold; padding:3px 4px 3px 7px;
+}
+.dlg-title .btn95{ width:18px; height:16px; font-size:11px; font-weight:bold; }
+.dlg-body{ display:flex; gap:12px; align-items:center; padding:14px 12px 10px; line-height:1.5; }
+.dlg-ico{
+  flex:0 0 auto; width:34px; height:34px; border-radius:50%;
+  background:var(--navy); color:#fff; font-family:Georgia,serif; font-style:italic;
+  font-weight:bold; font-size:21px; display:flex; align-items:center; justify-content:center;
+  box-shadow: inset -2px -2px rgba(0,0,0,.4), inset 2px 2px rgba(255,255,255,.35);
+}
+.dlg-btns{ text-align:right; padding:0 10px 10px; }
+#dlgOk{ min-width:76px; font-weight:bold; padding:3px 0; }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <div id="vignette"></div>
+  <div id="fade"></div>
+  <div id="hint">
+    <b>SPACE</b> pause &nbsp;·&nbsp; <b>R</b> new maze &nbsp;·&nbsp; <b>1 / 2 / 3</b> maze size &nbsp;·&nbsp; <b>+ / −</b> speed<br>
+    <b>↑ ↓ ← →</b> / <b>W A S D</b> drive yourself — autopilot resumes after 6 s<br>
+    <b>ESC</b> back to the desktop &nbsp;·&nbsp; <b>H</b> show this help
+  </div>
+  <div id="pausedChip" class="hidden">Paused — press SPACE</div>
+  <div id="caption">
+    <svg class="cap-ico" viewBox="0 0 16 16" aria-hidden="true">
+      <rect width="16" height="16" fill="#8a4b36"/>
+      <path d="M0 4h16 M0 10h16 M5 0v4 M13 0v4 M1 4v6 M9 4v6 M5 10v6 M13 10v6" stroke="#3c241a" stroke-width="1.4"/>
+    </svg>
+    <span class="cap-title">3D Maze</span>
+    <span class="cap-spacer"></span>
+    <span class="status-field" id="stSize">15 × 15</span>
+    <span class="status-field" id="stMode">AUTO</span>
+    <span class="status-field" id="stSpeed">1×</span>
+    <button class="btn95" id="capClose" title="Exit the screensaver (Esc)">&times;</button>
+  </div>
+</div>
+
+<div id="desktop" class="hidden">
+  <div id="icons">
+    <div class="icon" data-icon="maze" title="Double-click to run the screensaver">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <polygon points="16,1 31,9.5 16,18 1,9.5" fill="#b46a4c"/>
+        <polygon points="1,9.5 16,18 16,31 1,22.5" fill="#84422d"/>
+        <polygon points="31,9.5 31,22.5 16,31 16,18" fill="#5e2d1f"/>
+        <g fill="none" stroke="#3f1f14" stroke-width="0.9" opacity="0.55">
+          <path d="M10.7,3.9 25.7,12.4 M5.3,6.7 20.3,15.2 M23,14 9,6 M18.6,16.4 4.6,8"/>
+          <path d="M2,12.6 16,20.6 M2,15.4 16,23.4 M9,14.4 9,26.6 M4.5,12 4.5,14.9 M13.5,16.9 13.5,19.8"/>
+          <path d="M30,12.7 16,20.7 M30,15.9 16,23.9 M22,15 22,27 M27,11.7 27,24.2"/>
+        </g>
+        <polygon points="26.5,12.1 21.5,15 21.5,26.3 26.5,23.4" fill="#150a06"/>
+      </svg>
+      <div class="label">3D Maze</div>
+    </div>
+    <div class="icon" data-icon="computer">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="25.5" y="7" width="5.5" height="19" fill="#d6d6d6" stroke="#6f6f6f"/>
+        <rect x="27" y="9.5" width="2.5" height="1.3" fill="#8b8b8b"/>
+        <rect x="27" y="12.2" width="2.5" height="1.3" fill="#8b8b8b"/>
+        <rect x="27" y="20.5" width="3" height="2.4" fill="#9a9a9a"/>
+        <rect x="2" y="4" width="22" height="16" fill="#cfcfcf" stroke="#6f6f6f"/>
+        <rect x="4" y="6" width="18" height="12" fill="#0a2f9e"/>
+        <rect x="5.5" y="7.3" width="6.5" height="2" fill="#4f7fd9"/>
+        <rect x="7" y="20" width="12" height="3" fill="#b6b6b6" stroke="#6f6f6f" stroke-width="0.8"/>
+        <rect x="3" y="23" width="18" height="3.5" fill="#cfcfcf" stroke="#6f6f6f" stroke-width="0.8"/>
+        <rect x="5" y="24.3" width="5.5" height="1" fill="#5d9a3a"/>
+      </svg>
+      <div class="label">My Computer</div>
+    </div>
+    <div class="icon" data-icon="bin">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="12.5" y="4" width="7" height="3.4" rx="1.2" fill="#98a1a9" stroke="#454d55"/>
+        <rect x="5" y="6.8" width="22" height="4" rx="1" fill="#b9c2ca" stroke="#454d55"/>
+        <polygon points="7,10.8 25,10.8 22.7,29 9.3,29" fill="#cdd5dc" stroke="#454d55"/>
+        <path d="M12.4,11.8 V28.2 M16,11.8 V29 M19.6,11.8 V28.2" stroke="#8b949c" fill="none"/>
+        <g fill="#1e7c33">
+          <path d="M16,13.6 L18.7,16.3 L17.3,16.3 L17.3,18.9 L14.7,18.9 L14.7,16.3 L13.3,16.3 Z"/>
+          <path transform="rotate(120 16 20.6)" d="M16,13.6 L18.7,16.3 L17.3,16.3 L17.3,18.9 L14.7,18.9 L14.7,16.3 L13.3,16.3 Z"/>
+          <path transform="rotate(240 16 20.6)" d="M16,13.6 L18.7,16.3 L17.3,16.3 L17.3,18.9 L14.7,18.9 L14.7,16.3 L13.3,16.3 Z"/>
+        </g>
+      </svg>
+      <div class="label">Recycle Bin</div>
+    </div>
+  </div>
+  <div id="balloon" class="hidden">
+    <b>Tip</b> — double-click the <b>3D&nbsp;Maze</b> icon (or press <b>Enter</b>) to run the screensaver.
+  </div>
+</div>
+
+<div id="dialog" class="hidden">
+  <div class="dlg-title"><span id="dlgTitle">Message</span><button class="btn95" id="dlgX" title="Close">&times;</button></div>
+  <div class="dlg-body"><div class="dlg-ico">i</div><div id="dlgText"></div></div>
+  <div class="dlg-btns"><button class="btn95" id="dlgOk">OK</button></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+const $ = id => document.getElementById(id);
+const stage=$('stage'), canvas=$('gl'), fadeEl=$('fade'), hintEl=$('hint'),
+      pausedChip=$('pausedChip'), stSize=$('stSize'), stMode=$('stMode'), stSpeed=$('stSpeed'),
+      capClose=$('capClose'), desktop=$('desktop'), balloon=$('balloon'),
+      dialog=$('dialog'), dlgTitle=$('dlgTitle'), dlgText=$('dlgText'), dlgOk=$('dlgOk'), dlgX=$('dlgX');
+
+if (typeof THREE === 'undefined'){
+  hintEl.innerHTML = 'Could not load Three.js from the CDN.<br>Check your connection and reload the page.';
+  return;
+}
+
+/* ================= constants ================= */
+const C=4, H=5, T=0.6, CAM_Y=2.3, SPEED=6.2, FOG_D=0.055, DEG=Math.PI/180, TILE=4;
+let cols=15, rows=15, walls=null, speedMult=1;
+let mode='maze', paused=false, manual=false, manualLast=0;
+let camX=0, camZ=0, heading=0;
+
+/* ================= renderer / scene ================= */
+const renderer=new THREE.WebGLRenderer({canvas:canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.outputEncoding=THREE.sRGBEncoding;
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x070504);
+scene.fog=new THREE.FogExp2(0x070504, FOG_D);
+const camera=new THREE.PerspectiveCamera(66, innerWidth/innerHeight, 0.1, 300);
+scene.add(camera);
+scene.add(new THREE.AmbientLight(0x6a5a49, 0.5));
+const headlight=new THREE.PointLight(0xffd9a6, 1.35, 34, 1.35);
+headlight.position.set(0,0.3,0);
+camera.add(headlight);
+const maxAniso=renderer.capabilities.getMaxAnisotropy();
+
+/* ================= procedural textures ================= */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hexRGB(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function clamp255(v){return Math.max(0,Math.min(255,Math.round(v)));}
+
+function brickCanvas(o){
+  const S=256, cv=document.createElement('canvas'); cv.width=cv.height=S;
+  const ctx=cv.getContext('2d'), rnd=mulberry32(o.seed);
+  ctx.fillStyle=o.mortar; ctx.fillRect(0,0,S,S);
+  const rows=8, cols=4, bh=S/rows, bw=S/cols, gap=o.gap;
+  const [br,bg,bb]=hexRGB(o.base);
+  for(let r=0;r<rows;r++){
+    const shift=(r%2)?bw*0.5:0;
+    for(let c=-1;c<=cols;c++){
+      let f=(rnd()-0.5)*0.24;
+      if(rnd()<0.06) f-=0.2;                       /* occasional dark brick */
+      ctx.fillStyle='rgb('+clamp255(br*(1+f))+','+clamp255(bg*(1+f*0.85))+','+clamp255(bb*(1+f*0.7))+')';
+      const px=c*bw-shift+gap/2, py=r*bh+gap/2, pw=bw-gap, ph=bh-gap;
+      ctx.fillRect(px,py,pw,ph);
+      ctx.fillStyle='rgba(0,0,0,0.28)';            /* brick bevel */
+      ctx.fillRect(px,py,pw,1.5); ctx.fillRect(px,py,1.5,ph);
+      ctx.fillStyle='rgba(255,255,255,0.07)';
+      ctx.fillRect(px,py+ph-1.5,pw,1.5); ctx.fillRect(px+pw-1.5,py,1.5,ph);
+    }
+  }
+  const img=ctx.getImageData(0,0,S,S), d=img.data; /* grain */
+  for(let i=0;i<d.length;i+=4){const n=(rnd()-0.5)*2*o.noiseAmt; d[i]=d[i]+n; d[i+1]=d[i+1]+n; d[i+2]=d[i+2]+n;}
+  ctx.putImageData(img,0,0);
+  for(let i=0;i<70;i++){                           /* speckles */
+    ctx.fillStyle = rnd()<0.5 ? 'rgba(0,0,0,0.10)' : 'rgba(255,235,215,0.05)';
+    ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1+rnd()*1.5,1+rnd()*1.5);
+  }
+  return cv;
+}
+function ceilingCanvas(){
+  const S=128, cv=document.createElement('canvas'); cv.width=cv.height=S;
+  const ctx=cv.getContext('2d'), rnd=mulberry32(99);
+  ctx.fillStyle='#161318'; ctx.fillRect(0,0,S,S);
+  for(let i=0;i<26;i++){ctx.fillStyle='rgba(0,0,0,0.06)';ctx.beginPath();ctx.arc(rnd()*S,rnd()*S,6+rnd()*14,0,7);ctx.fill();}
+  const img=ctx.getImageData(0,0,S,S), d=img.data;
+  for(let i=0;i<d.length;i+=4){const n=(rnd()-0.5)*7; d[i]=d[i]+n; d[i+1]=d[i+1]+n; d[i+2]=d[i+2]+n;}
+  ctx.putImageData(img,0,0); return cv;
+}
+function toTex(cv){
+  const t=new THREE.CanvasTexture(cv);
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.encoding=THREE.sRGBEncoding; t.anisotropy=maxAniso;
+  return t;
+}
+const wallMat =new THREE.MeshLambertMaterial({map:toTex(brickCanvas({base:'#8a4b36',mortar:'#453a32',gap:3,seed:11,noiseAmt:9}))});
+const floorMat=new THREE.MeshLambertMaterial({map:toTex(brickCanvas({base:'#4e372b',mortar:'#1f1a16',gap:5,seed:47,noiseAmt:10}))});
+const ceilMat =new THREE.MeshLambertMaterial({map:toTex(ceilingCanvas())});
+
+/* ================= maze generation (recursive backtracker) ================= */
+function genMaze(){
+  walls=new Uint8Array(cols*rows).fill(15);        /* bits: 1=N 2=E 4=S 8=W */
+  const vis=new Uint8Array(cols*rows);
+  const D4=[{dx:0,dz:-1,b:1,o:4},{dx:1,dz:0,b:2,o:8},{dx:0,dz:1,b:4,o:1},{dx:-1,dz:0,b:8,o:2}];
+  const stack=[(Math.random()*cols*rows)|0];
+  vis[stack[0]]=1;
+  while(stack.length){
+    const i=stack[stack.length-1], x=i%cols, y=(i/cols)|0, cand=[];
+    for(const d of D4){
+      const nx=x+d.dx, ny=y+d.dz;
+      if(nx>=0&&nx<cols&&ny>=0&&ny<rows&&!vis[ny*cols+nx]) cand.push(d);
+    }
+    if(cand.length){
+      const d=cand[(Math.random()*cand.length)|0];
+      walls[i]&=~d.b;
+      walls[(y+d.dz)*cols+(x+d.dx)]&=~d.o;
+      const ni=(y+d.dz)*cols+(x+d.dx);
+      vis[ni]=1; stack.push(ni);
+    } else stack.pop();
+  }
+}
+
+/* ================= geometry (merged, brick-scaled UVs) ================= */
+function mergeBoxes(items){
+  const pos=[],nor=[],uv=[],idx=[]; let v=0;
+  for(const it of items){
+    const g=new THREE.BoxGeometry(it.sx,it.sy,it.sz);
+    const p=g.attributes.position, n=g.attributes.normal, u=g.attributes.uv, ix=g.index;
+    const su=(it.axis==='x'?it.sx:it.sz)/TILE, sv=it.sy/TILE;
+    for(let i=0;i<p.count;i++){
+      pos.push(p.getX(i)+it.x, p.getY(i)+it.y, p.getZ(i)+it.z);
+      nor.push(n.getX(i), n.getY(i), n.getZ(i));
+      uv.push(u.getX(i)*su+it.uo, u.getY(i)*sv+it.vo);
+    }
+    for(let i=0;i<ix.count;i++) idx.push(ix.getX(i)+v);
+    v+=p.count; g.dispose();
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  geo.setIndex(idx);
+  return geo;
+}
+function scaleUV(g,sx,sy){const u=g.attributes.uv;for(let i=0;i<u.count;i++)u.setXY(i,u.getX(i)*sx,u.getY(i)*sy);}
+
+const mazeGroup=new THREE.Group(); scene.add(mazeGroup);
+function buildMaze(){
+  genMaze();
+  for(const m of mazeGroup.children) m.geometry.dispose();
+  mazeGroup.clear();
+  const items=[];
+  for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
+    const w=walls[y*cols+x];
+    if(w&1) items.push({x:x*C+C/2,y:H/2,z:y*C,   sx:C+T,sy:H,sz:T,axis:'x',uo:Math.random(),vo:Math.random()*.5});
+    if(w&8) items.push({x:x*C,    y:H/2,z:y*C+C/2,sx:T, sy:H,sz:C+T,axis:'z',uo:Math.random(),vo:Math.random()*.5});
+  }
+  items.push({x:cols*C,   y:H/2,z:rows*C/2,sx:T,   sy:H,sz:rows*C+T,axis:'z',uo:0,vo:0}); /* east border */
+  items.push({x:cols*C/2, y:H/2,z:rows*C,  sx:cols*C+T,sy:H,sz:T,   axis:'x',uo:0,vo:0}); /* south border */
+  mazeGroup.add(new THREE.Mesh(mergeBoxes(items),wallMat));
+  const fw=cols*C+T, fd=rows*C+T;
+  const fg=new THREE.PlaneGeometry(fw,fd); scaleUV(fg,fw/TILE,fd/TILE);
+  fg.rotateX(-Math.PI/2); fg.translate(cols*C/2,0,rows*C/2);
+  mazeGroup.add(new THREE.Mesh(fg,floorMat));
+  const cg=new THREE.PlaneGeometry(fw,fd); scaleUV(cg,fw/TILE,fd/TILE);
+  cg.rotateX(Math.PI/2); cg.translate(cols*C/2,H,rows*C/2);
+  mazeGroup.add(new THREE.Mesh(cg,ceilMat));
+}
+
+/* ================= navigation: autopilot ================= */
+const D={ N:{dx:0,dz:-1,angle:0}, E:{dx:1,dz:0,angle:-90}, S:{dx:0,dz:1,angle:180}, W:{dx:-1,dz:0,angle:90} };
+const OPP={ N:D.S, S:D.N, E:D.W, W:D.E };
+const ap={state:'moving',cx:0,cz:0,tx:0,tz:0,incoming:D.N,pending:null,turnFrom:0,turnTo:0,turnT:0,turnDur:1};
+
+function openDirs(){
+  const w=walls[ap.cz*cols+ap.cx], o=[];
+  if(!(w&1))o.push(D.N); if(!(w&2))o.push(D.E); if(!(w&4))o.push(D.S); if(!(w&8))o.push(D.W);
+  return o;
+}
+function setTarget(d){ ap.tx=(ap.cx+d.dx)*C+C/2; ap.tz=(ap.cz+d.dz)*C+C/2; }
+function shortDelta(f,t){ return ((t-f)%360+540)%360-180; }
+function smooth(k){ return k*k*(3-2*k); }
+
+function chooseNext(){
+  const open=openDirs(), opp=OPP[ap.incoming];
+  let pick;
+  if(open.length===1) pick=open[0];                                  /* dead end: U-turn */
+  else if(Math.random()<0.1) pick=opp;                               /* occasional U-turn */
+  else{
+    const opts=open.filter(d=>d!==opp);
+    pick=(opts.indexOf(ap.incoming)>=0 && Math.random()<0.55) ? ap.incoming : opts[(Math.random()*opts.length)|0];
+  }
+  const delta=shortDelta(heading,pick.angle);
+  if(Math.abs(delta)<0.5){ heading=pick.angle; ap.incoming=pick; setTarget(pick); ap.state='moving'; }
+  else{
+    ap.state='turning'; ap.turnFrom=heading; ap.turnTo=heading+delta;
+    ap.turnT=0; ap.turnDur=Math.abs(delta)>179?0.95:0.55; ap.pending=pick;
+  }
+}
+function initAutopilot(){
+  ap.cx=(Math.random()*cols)|0; ap.cz=(Math.random()*rows)|0;
+  const open=openDirs();
+  ap.incoming=open[(Math.random()*open.length)|0];
+  camX=ap.cx*C+C/2; camZ=ap.cz*C+C/2;
+  heading=ap.incoming.angle; ap.state='moving'; setTarget(ap.incoming);
+}
+function updateAutopilot(dt){
+  if(ap.state==='turning'){
+    ap.turnT+=dt;
+    const k=Math.min(ap.turnT/ap.turnDur,1);
+    heading=ap.turnFrom+(ap.turnTo-ap.turnFrom)*smooth(k);
+    if(k>=1){ heading=ap.turnTo; ap.incoming=ap.pending; setTarget(ap.pending); ap.state='moving'; }
+    return;
+  }
+  const step=SPEED*speedMult*dt;
+  const dx=ap.tx-camX, dz=ap.tz-camZ, dist=Math.hypot(dx,dz);
+  if(dist<=step){
+    camX=ap.tx; camZ=ap.tz;
+    ap.cx=Math.round((ap.tx-C/2)/C); ap.cz=Math.round((ap.tz-C/2)/C);
+    chooseNext();
+  }else{
+    camX+=dx/dist*step; camZ+=dz/dist*step;
+  }
+}
+
+/* ================= navigation: manual drive ================= */
+const keys=new Set();
+function clampToMaze(){
+  const cx=Math.max(0,Math.min(cols-1,(camX/C)|0));
+  const cz=Math.max(0,Math.min(rows-1,(camZ/C)|0));
+  const w=walls[cz*cols+cx];
+  let x0=cx*C,x1=(cx+1)*C,z0=cz*C,z1=(cz+1)*C;
+  if(cx>0&&!(w&8))x0=(cx-1)*C;  if(cx<cols-1&&!(w&2))x1=(cx+2)*C;
+  if(cz>0&&!(w&1))z0=(cz-1)*C;  if(cz<rows-1&&!(w&4))z1=(cz+2)*C;
+  const m=0.42;
+  camX=Math.max(x0+m,Math.min(x1-m,camX));
+  camZ=Math.max(z0+m,Math.min(z1-m,camZ));
+}
+function updateManual(dt){
+  const r=150*speedMult*dt, mv=SPEED*0.95*speedMult*dt;
+  if(keys.has('ArrowLeft')||keys.has('a')||keys.has('A')) heading+=r;
+  if(keys.has('ArrowRight')||keys.has('d')||keys.has('D')) heading-=r;
+  const up=keys.has('ArrowUp')||keys.has('w')||keys.has('W');
+  const dn=keys.has('ArrowDown')||keys.has('s')||keys.has('S');
+  if(up||dn){
+    const f=(up?1:0)-(dn?0.55:0), hr=heading*DEG;
+    camX+=-Math.sin(hr)*mv*f; camZ+=-Math.cos(hr)*mv*f;
+    clampToMaze();
+  }
+}
+function dirOfHeading(h){
+  const n=((h%360)+360)%360;
+  if(n<45||n>=315)return D.N; if(n<135)return D.W; if(n<225)return D.S; return D.E;
+}
+function resumeAutopilot(){
+  manual=false; setModeField();
+  ap.cx=Math.max(0,Math.min(cols-1,(camX/C)|0));
+  ap.cz=Math.max(0,Math.min(rows-1,(camZ/C)|0));
+  camX=ap.cx*C+C/2; camZ=ap.cz*C+C/2;
+  heading=Math.round(heading/90)*90;
+  ap.incoming=dirOfHeading(heading);
+  chooseNext();
+}
+
+/* ================= UI ================= */
+function setModeField(){ stMode.textContent=manual?'MANUAL':'AUTO'; }
+function updateStatus(){ stSize.textContent=cols+' × '+rows; stSpeed.textContent=String(Math.round(speedMult*100)/100)+'×'; }
+function togglePause(){ paused=!paused; pausedChip.classList.toggle('hidden',!paused); }
+function bumpSpeed(d){ speedMult=Math.max(0.5,Math.min(2,Math.round((speedMult+d)*100)/100)); updateStatus(); }
+
+let hintTimer=setTimeout(()=>hintEl.classList.add('hide'),8000);
+function flashHint(){ hintEl.classList.remove('hide'); clearTimeout(hintTimer); hintTimer=setTimeout(()=>hintEl.classList.add('hide'),5000); }
+
+let rebuilding=false;
+function newMaze(){
+  if(rebuilding)return; rebuilding=true;
+  fadeEl.style.transition='opacity .35s ease'; fadeEl.style.opacity='1';
+  setTimeout(()=>{
+    buildMaze(); initAutopilot();
+    manual=false; setModeField(); paused=false; pausedChip.classList.add('hidden');
+    updateStatus(); rebuilding=false; fadeEl.style.opacity='0';
+  },380);
+}
+function setSize(n){ cols=rows=n; newMaze(); }
+
+/* ---------------- desktop / dialogs ---------------- */
+let balloonTimer=null, dialogOpen=false;
+function openDialog(title,text){ dlgTitle.textContent=title; dlgText.textContent=text; dialog.classList.remove('hidden'); dialogOpen=true; }
+function closeDialog(){ dialog.classList.add('hidden'); dialogOpen=false; }
+dlgOk.addEventListener('click',function(e){ closeDialog(); e.currentTarget.blur(); });
+dlgX.addEventListener('click',function(e){ closeDialog(); e.currentTarget.blur(); });
+
+function scheduleBalloon(){ clearTimeout(balloonTimer); balloonTimer=setTimeout(function(){ if(mode==='desktop')balloon.classList.remove('hidden'); },2400); }
+function killBalloon(){ clearTimeout(balloonTimer); balloon.classList.add('hidden'); }
+
+const icons=Array.prototype.slice.call(document.querySelectorAll('.icon'));
+function selectIcon(el){ icons.forEach(function(i){ i.classList.toggle('sel',i===el); }); }
+icons.forEach(function(ic){
+  ic.addEventListener('click',function(e){ e.stopPropagation(); selectIcon(ic); killBalloon(); });
+  ic.addEventListener('dblclick',function(e){
+    e.stopPropagation();
+    const k=ic.dataset.icon;
+    if(k==='maze') enterMaze();
+    else if(k==='computer') openDialog('My Computer','C:\\ contains exactly one program:\nMAZE.SCR — the 3D Maze screensaver.');
+    else if(k==='bin') openDialog('Recycle Bin','The Recycle Bin is empty.');
+  });
+});
+desktop.addEventListener('click',function(){ selectIcon(null); killBalloon(); });
+
+function flashIn(dur){
+  fadeEl.style.transition='none'; fadeEl.style.opacity='1';
+  void fadeEl.offsetWidth;
+  fadeEl.style.transition='opacity '+dur+'s ease'; fadeEl.style.opacity='0';
+}
+function enterMaze(){
+  mode='maze'; closeDialog(); killBalloon();
+  desktop.classList.add('hidden'); stage.classList.remove('hidden');
+  paused=false; pausedChip.classList.add('hidden');
+  manual=false; setModeField(); keys.clear();
+  resize(); flashIn(0.8);
+}
+function exitToDesktop(){
+  mode='desktop';
+  stage.classList.add('hidden'); desktop.classList.remove('hidden');
+  paused=false; pausedChip.classList.add('hidden');
+  keys.clear(); manual=false;
+  scheduleBalloon();
+}
+capClose.addEventListener('click',function(e){ e.currentTarget.blur(); exitToDesktop(); });
+canvas.addEventListener('click',function(){ if(mode==='maze') togglePause(); });
+
+/* ================= input ================= */
+const NAV=new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D']);
+window.addEventListener('keydown',function(e){
+  const k=e.key;
+  if(mode==='maze'){
+    if(k===' '||k.indexOf('Arrow')===0) e.preventDefault();
+    if(k==='Escape'){ exitToDesktop(); return; }
+    if(k===' '){ togglePause(); return; }
+    if(k==='r'||k==='R'||k==='n'||k==='N'){ newMaze(); return; }
+    if(k==='1'){ setSize(9); return; }
+    if(k==='2'){ setSize(15); return; }
+    if(k==='3'){ setSize(21); return; }
+    if(k==='+'||k==='='){ bumpSpeed(0.25); return; }
+    if(k==='-'||k==='_'){ bumpSpeed(-0.25); return; }
+    if(k==='h'||k==='H'){ flashHint(); return; }
+    if(NAV.has(k)){ if(!manual){ manual=true; setModeField(); } manualLast=performance.now()/1000; }
+    keys.add(k);
+  }else{
+    if(dialogOpen){ if(k==='Enter'||k==='Escape'||k===' ') closeDialog(); return; }
+    if(k==='Enter'){ enterMaze(); return; }
+    if(k==='Escape') killBalloon();
+  }
+});
+window.addEventListener('keyup',function(e){ keys.delete(e.key); });
+window.addEventListener('blur',function(){ keys.clear(); manualLast=0; });
+
+/* ================= main loop ================= */
+function resize(){
+  const w=stage.clientWidth||innerWidth, h=stage.clientHeight||innerHeight;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize',resize);
+
+let lastT=performance.now()/1000;
+function tick(t){
+  requestAnimationFrame(tick);
+  const now=t/1000, dt=Math.min(now-lastT,0.05); lastT=now;
+  if(mode!=='maze') return;
+  if(!paused){
+    if(manual){
+      updateManual(dt);
+      if(now-manualLast>6) resumeAutopilot();
+    }else updateAutopilot(dt);
+  }
+  camera.position.set(camX,CAM_Y,camZ);
+  camera.rotation.y=heading*DEG;
+  renderer.render(scene,camera);
+}
+
+/* ================= boot ================= */
+buildMaze(); initAutopilot(); updateStatus(); resize();
+flashIn(1.1);
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
