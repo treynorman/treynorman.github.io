@@ -1,0 +1,111 @@
+/*
+ * The readout of captured identifiers.
+ *
+ * The text is the same red as the face circle and the pupil markers. It
+ * sits in the top left of the screen, over the camera view, and scrolls
+ * upward slowly.
+ *
+ * The block is sized to the space the design calls for:
+ *
+ *   - on a phone in portrait, the top half of the screen and the left
+ *     third of the width
+ *   - on a wide screen, the top fifth of the screen and the full width
+ *
+ * The size is in rem, so the text follows the browser's font setting.
+ */
+
+.telemetry {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 10;
+	color: #ff0000;
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	font-size: 1rem;
+	line-height: 1.35;
+	text-align: left;
+	pointer-events: none;
+	/* The heading is allowed to run past the edge of the block on a narrow
+	   screen, so the block itself must not clip it. */
+	overflow: visible;
+	/* A column, so the window below the heading takes the rest of the
+	   height rather than growing to fit the text. */
+	display: flex;
+	flex-direction: column;
+	/* The width is a percentage of the screen, so the margin has to come
+	   out of the padding rather than being added to it. */
+	box-sizing: border-box;
+}
+
+.telemetry-header {
+	font-weight: 700;
+	padding: 0.5rem 0.75rem 0.25rem;
+	/* The heading never scrolls away. */
+	flex: 0 0 auto;
+	/* The heading stays on one line, even on a phone where the block is
+	   only a third of the screen wide. */
+	white-space: nowrap;
+}
+
+.telemetry-viewport {
+	overflow: hidden;
+	/* The part of the panel the text scrolls through. */
+	flex: 1 1 auto;
+	min-height: 0;
+	/* A long value wraps inside the column rather than running past it. */
+	overflow-wrap: anywhere;
+}
+
+.telemetry-content {
+	will-change: transform;
+}
+
+/*
+ * One copy of the lines. The text is repeated so the scroll can run for
+ * ever: when one copy has gone past the top, the copy behind it is in
+ * exactly the same place, so the first line comes round again without a
+ * seam.
+ */
+.telemetry-block {
+	padding-bottom: 0.5rem;
+}
+
+.telemetry-label {
+	margin-left: 0.75rem;
+}
+
+.telemetry-value {
+	margin-left: 1.75rem;
+}
+
+/*
+ * A phone held upright: text box dimensions
+ */
+@media (orientation: portrait) {
+	.telemetry {
+		width: 100%;
+		height: 20%;
+		padding-right: 0.5rem;
+	}
+}
+
+/*
+ * Wide screen text box dimensions
+ */
+@media (orientation: landscape) {
+	.telemetry {
+		width: 30%;
+		height: 75%;
+		padding-right: 1rem;
+	}
+}
+
+/*
+ * A screen that is neither tall nor wide -- a small window, say -- still
+ * gets a readable block.
+ */
+@media (min-width: 900px) and (min-height: 700px) {
+	.telemetry {
+		font-size: 1.05rem;
+	}
+}

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<title>pico.js: real-time face and pupil detection</title>
+		<script src="js/camvas.js"></script>
+		<script src="js/pico.js"></script>
+		<script src="js/lploc.js"></script>
+		<link rel="stylesheet" href="telemetry.css">
+		<style>
+			/* full-screen camera view: no chrome, no scrollbars */
+			html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+			canvas { display: block; }
+			/*
+			 * Mirror the view, the way a mirror would.
+			 *
+			 * The flip is applied to the canvas as a whole, so the camera
+			 * image and the markers drawn on top of it are flipped
+			 * together: the red face circle and the pupil dots stay
+			 * exactly where the face is.
+			 */
+			body.mirrored canvas { transform: scaleX(-1); }
+		</style>
+	</head>
+	<script>
+		var initialized = false;
+		function init() {
+			/*
+				(0) check whether we're already running face detection
+			*/
+			if(initialized)
+				return; // if yes, then do not initialize everything again
+			/*
+				(1) initialize the pico.js face detector
+			*/
+			var update_memory = pico.instantiate_detection_memory(5); // we will use the detecions of the last 5 frames
+			var facefinder_classify_region = function(r, c, s, pixels, ldim) {return -1.0;};
+			// The cascade and the pupil localizer ship with the app, so the page
+			// works without reaching out to a third party. The upstream URLs are
+			// kept as a fallback in case the local copies are missing.
+			var cascadeurl = 'js/facefinder.bin';
+			var cascadefallbackurl = 'https://raw.githubusercontent.com/nenadmarkus/pico/c2e81f9d23cc11d1a612fd21e4f9de0921a5d0d9/rnt/cascades/facefinder';
+			load_binary(cascadeurl, cascadefallbackurl).then(function(buffer) {
+				var bytes = new Int8Array(buffer);
+				facefinder_classify_region = pico.unpack_cascade(bytes);
+				console.log('* facefinder loaded');
+			})
+			/*
+				(2) initialize the lploc.js library with a pupil localizer
+			*/
+			var do_puploc = function(r, c, s, nperturbs, pixels, nrows, ncols, ldim) {return [-1.0, -1.0];};
+			var puplocurl = 'js/puploc.bin';
+			var puplocfallbackurl = 'https://drone.nenadmarkus.com/data/blog-stuff/puploc.bin';
+			load_binary(puplocurl, puplocfallbackurl).then(function(buffer) {
+				var bytes = new Int8Array(buffer);
+				do_puploc = lploc.unpack_localizer(bytes);
+				console.log('* puploc loaded');
+			})
+			/*
+				(3) get the drawing context on the canvas, size the canvas to the viewport,
+				and define a function to transform an RGBA image to grayscale
+			*/
+			var canvas = document.getElementsByTagName('canvas')[0];
+			var ctx = canvas.getContext('2d');
+			function resize() {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+			}
+			resize();
+			window.addEventListener('resize', resize);
+			function rgba_to_grayscale(rgba, nrows, ncols) {
+				var gray = new Uint8Array(nrows*ncols);
+				for(var r=0; r<nrows; ++r)
+					for(var c=0; c<ncols; ++c)
+						// gray = 0.2*red + 0.7*green + 0.1*blue
+						gray[r*ncols + c] = (2*rgba[r*4*ncols+4*c+0]+7*rgba[r*4*ncols+4*c+1]+1*rgba[r*4*ncols+4*c+2])/10;
+				return gray;
+			}
+			/*
+				(4) this function is called each time a video frame becomes available
+			*/
+			var camera_announced = false;
+			var processfn = function(video, dt) {
+				// skip frames until the video has a real frame size
+				if(video.videoWidth === 0 || video.videoHeight === 0)
+					return;
+				// the first real frame means the camera is up and the UI is live
+				if(!camera_announced) {
+					camera_announced = true;
+					document.dispatchEvent(new CustomEvent('combo:camera-ready'));
+				}
+				// draw the video frame into the viewport preserving its aspect ratio
+				// (cover: fill the screen, crop the overflow) so the face is never stretched
+				var vw = video.videoWidth, vh = video.videoHeight;
+				var scale = Math.max(canvas.width / vw, canvas.height / vh);
+				var dw = vw * scale, dh = vh * scale;
+				var dx = (canvas.width - dw) / 2;
+				var dy = (canvas.height - dh) / 2;
+				ctx.drawImage(video, dx, dy, dw, dh);
+				// extract RGBA pixel data from the full viewport (the pixels we just drew)
+				var rgba = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+				// prepare input to `run_cascade`
+				image = {
+					"pixels": rgba_to_grayscale(rgba, canvas.height, canvas.width),
+					"nrows": canvas.height,
+					"ncols": canvas.width,
+					"ldim": canvas.width
+				}
+				params = {
+					"shiftfactor": 0.1, // move the detection window by 10% of its size
+					"minsize": 100,     // minimum size of a face
+					"maxsize": Math.max(1000, Math.round(canvas.width * 0.5)), // maximum size of a face (scales up for large/4K viewports)
+					"scalefactor": 1.1  // for multiscale processing: resize the detection window by 10% when moving to the higher scale
+				}
+				// run the cascade over the frame and cluster the obtained detections
+				// dets is an array that contains (r, c, s, q) quadruplets
+				// (representing row, column, scale and detection score)
+				dets = pico.run_cascade(image, facefinder_classify_region, params);
+				dets = update_memory(dets);
+				dets = pico.cluster_detections(dets, 0.2); // set IoU threshold to 0.2
+				// draw detections
+				var face_locked = false;
+				for(i=0; i<dets.length; ++i)
+					// check the detection score
+					// if it's above the threshold, draw it
+					// (the constant 50.0 is empirical: other cascades might require a different one)
+					if(dets[i][3]>50.0)
+					{
+						face_locked = true;
+						var r, c, s;
+						//
+						ctx.beginPath();
+						ctx.arc(dets[i][1], dets[i][0], dets[i][2]/2, 0, 2*Math.PI, false);
+						ctx.lineWidth = 3;
+						ctx.strokeStyle = 'red';
+						ctx.stroke();
+						//
+						// find the eye pupils for each detected face
+						// starting regions for localization are initialized based on the face bounding box
+						// (parameters are set empirically)
+						// first eye
+						r = dets[i][0] - 0.075*dets[i][2];
+						c = dets[i][1] - 0.175*dets[i][2];
+						s = 0.35*dets[i][2];
+						[r, c] = do_puploc(r, c, s, 63, image)
+						if(r>=0 && c>=0)
+						{
+							ctx.beginPath();
+							ctx.arc(c, r, 1, 0, 2*Math.PI, false);
+							ctx.lineWidth = 3;
+							ctx.strokeStyle = 'red';
+							ctx.stroke();
+						}
+						// second eye
+						r = dets[i][0] - 0.075*dets[i][2];
+						c = dets[i][1] + 0.175*dets[i][2];
+						s = 0.35*dets[i][2];
+						[r, c] = do_puploc(r, c, s, 63, image)
+						if(r>=0 && c>=0)
+						{
+							ctx.beginPath();
+							ctx.arc(c, r, 1, 0, 2*Math.PI, false);
+							ctx.lineWidth = 3;
+							ctx.strokeStyle = 'red';
+							ctx.stroke();
+						}
+					}
+				// the face is locked while a detection is above the threshold; when
+				// the face leaves the frame the markers vanish and the lock is lost
+				document.dispatchEvent(new CustomEvent('combo:face-lock', {
+					detail: {locked: face_locked}
+				}));
+			}
+			/*
+				(5) instantiate camera handling (see https://github.com/cbrandolino/camvas)
+				this calls getUserMedia, so the browser asks for camera permission
+			*/
+			var mycamvas = new camvas(ctx, processfn);
+			/*
+				(6) it seems that everything went well
+			*/
+			initialized = true;
+		}
+		/*
+			(7) start everything as soon as the page (and the canvas) is loaded,
+			so the browser asks for camera permission right when the page loads
+		*/
+		window.addEventListener('DOMContentLoaded', init);
+		/*
+			Fetch a binary asset, falling back to a remote copy when the local
+			one is missing. Either way the app needs no third party to work.
+		*/
+		function load_binary(local, remote) {
+			return fetch(local).then(function(response) {
+				if(!response.ok) throw new Error('HTTP ' + response.status);
+				return response.arrayBuffer();
+			}).catch(function() {
+				return fetch(remote).then(function(response) {
+					if(!response.ok) throw new Error('HTTP ' + response.status);
+					return response.arrayBuffer();
+				});
+			});
+		}
+	</script>
+	<body>
+		<canvas width="640" height="480"></canvas>
+		<!-- The captured identifiers are shown here. -->
+		<div id="telemetry"></div>
+		<script type="module" src="app.js"></script>
+	</body>
+</html>
